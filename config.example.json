@@ -1,0 +1,19 @@
+{
+  "accent": "#7dd3fc",
+  "pauseUnderHome": false,
+  "freeMemoryApps": [
+    "youtube.leanback.v4",
+    "com.cbs-all-access.webapp.prod",
+    "youtube.leanback.ytv.v1",
+    "netflix",
+    "amazon",
+    "com.peacock.tv",
+    "com.disney.disneyplus-prod",
+    "com.apple.appletv",
+    "com.wbd.stream",
+    "com.webos.app.homeconnect"
+  ],
+  "settingsId": "com.palm.app.settings",
+  "backgroundOpacity": 0.85,
+  "pauseOnHome": true
+}

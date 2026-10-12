@@ -1,0 +1,107 @@
+#!/bin/sh
+# elgie-man boot hook for webOS 5 (CX). Install as /var/lib/webosbrew/init.d/05elgieman.
+# Swaps Home's qml/ for elgie-man and restarts Home so it loads it. LG restores Home from
+# a saved snapshot (CRIU), which would bring LG's UI back, so the hook hides LG's stored
+# Home snapshot behind our own folder: Home starts fresh once, the TV snapshots the
+# launcher into that folder, and later starts (including after reboots) restore it. LG's snapshot is
+# never modified. With /var/lib/elgie-man/no-snapshot present it instead switches
+# snapshot restore off for all apps (/tmp/criu_enable moved aside).
+# After 45 s it checks the launcher started and reverts to stock Home if it did not.
+# Touch /var/lib/elgie-man/disabled to turn it off. Never blocks boot.
+D=/var/lib/elgie-man
+Q=/usr/palm/applications/com.webos.app.home/qml
+L=/tmp/elgie-man.log
+CONF="/home/root/.config/Unknown Organization/com.webos.app.home.conf"
+APP=com.webos.app.home
+STORED=/mnt/lg/cmn_data/checkpoint/$APP     # LG's stored Home snapshot (left untouched)
+OURS=$D/snapshot                            # where the launcher's snapshot is kept instead
+TMPIMG=/tmp/checkpoint/$APP
+
+[ -f $D/disabled ] && exit 0
+[ -f $D/qml/main.qml ] || exit 0
+
+log() { echo "$(date '+%F %T') $*" >> $L; }
+toast() {
+  luna-send -n 1 luna://com.webos.notification/createToast \
+    "{\"sourceId\":\"com.webos.app.home\",\"message\":\"$1\"}" >/dev/null 2>&1
+}
+homepid() { pgrep -f '^/usr/bin/com.webos.app.home' | head -1; }
+
+# Drops the temp copy of Home's snapshot so the next start re-reads the stored one.
+clear_tmp_snapshot() { rm -rf $TMPIMG /tmp/checkpoint/hash_check_$APP; }
+
+revert() {
+  log "failsafe: $1"
+  grep -q " $Q " /proc/mounts && umount $Q
+  grep -q " $STORED " /proc/mounts && umount $STORED
+  clear_tmp_snapshot
+  [ -f /tmp/elgie-criu_enable.bak ] && mv /tmp/elgie-criu_enable.bak /tmp/criu_enable
+  touch $D/disabled
+  H=$(homepid); [ -n "$H" ] && kill $H
+  toast "elgie-man did not start ($1); stock Home restored"
+}
+
+lastStartSec() {
+  grep '^lastStart=' "$CONF" 2>/dev/null | tail -1 | cut -d= -f2 | awk '{ printf "%d", $1 / 1000 }'
+}
+
+health() {
+  [ -f $D/health.env ] || return 0
+  . $D/health.env
+  n=$(luna-send -n 1 -w 5000 luna://com.webos.service.eim/getAllInputStatus '{}' | grep -o '"appId"' | wc -l)
+  out=$(luna-send -n 1 -w 5000 luna://com.webos.service.apiadapter/audio/getSoundOutput '{}' | grep -o '"soundOutput":"[^"]*"' | cut -d'"' -f4)
+  log "health: inputs=$n (was $INPUTS) soundOutput=$out (was $SOUND_OUTPUT)"
+  if [ "$n" != "$INPUTS" ] || [ "$out" != "$SOUND_OUTPUT" ]; then
+    toast "elgie-man health check: inputs $n/$INPUTS, sound $out/$SOUND_OUTPUT"
+  fi
+}
+
+# Only the tested webOS version, unless deploy.sh was run with FORCE=1 (marker file).
+V=$(sed -n 's/^VERSION_ID=//p' /etc/os-release 2>/dev/null | tr -d '"')
+if [ "$V" != 5.6.2 ] && [ ! -f $D/force ]; then
+  log "webOS ${V:-unknown} is untested (5.6.2 expected); left stock"
+  (sleep 60; toast "elgie-man is off: webOS ${V:-unknown} is untested") >/dev/null 2>&1 &
+  exit 0
+fi
+
+log "start uptime=$(cut -d' ' -f1 /proc/uptime) home=$(homepid)"
+grep -q " $Q " /proc/mounts || mount --bind $D/qml $Q || { log "mount failed"; exit 0; }
+if [ -f $D/no-snapshot ] || [ ! -d $STORED ]; then
+  [ -f /tmp/criu_enable ] && mv /tmp/criu_enable /tmp/elgie-criu_enable.bak
+  log "mode: snapshots off"
+else
+  [ -f /tmp/elgie-criu_enable.bak ] && mv /tmp/elgie-criu_enable.bak /tmp/criu_enable
+  # The launcher's snapshot from the last boot is reused, as LG does with its own. (The
+  # TV restores it under a new process id if the old one is taken.) The folder is only
+  # emptied when the previous reuse never confirmed a start ("trying" stamp still there),
+  # so a bad snapshot cannot repeat; deploy.sh also empties it, since it holds old QML.
+  mkdir -p $OURS
+  SPID=$(ls $OURS 2>/dev/null | sed -n 's/^core-\([0-9]*\)\.img$/\1/p' | sort -n | head -1)
+  if [ -n "$SPID" ] && [ ! -f $D/snapshot-trying ]; then
+    touch $D/snapshot-trying
+    log "mode: launcher snapshot, reusing (saved pid $SPID)"
+  else
+    [ -f $D/snapshot-trying ] && log "previous reuse did not confirm a start; clearing snapshot"
+    rm -rf $OURS/*; rm -f $D/snapshot-trying
+    log "mode: launcher snapshot, starting fresh"
+  fi
+  grep -q " $STORED " /proc/mounts || mount --bind $OURS $STORED || { log "snapshot mount failed"; umount $Q; exit 0; }
+  clear_tmp_snapshot
+fi
+T=$(date +%s)
+H=$(homepid); [ -n "$H" ] && kill $H
+log "applied, killed=$H"
+
+(
+  # Home is relaunched by preload-manager, or in standby when the TV is next turned on.
+  # Launching it from here is not an option: a launch from a shell is not treated as a
+  # hidden preload, so the window would be shown without the launcher being told.
+  while [ -z "$(homepid)" ]; do sleep 5; done
+  log "home running pid=$(homepid)"
+  sleep 45
+  S=$(lastStartSec)
+  if [ -z "$S" ] || [ "$S" -lt "$T" ]; then revert "no start stamp since $T (got ${S:-none})"
+  else log "launcher started at $S pid=$(homepid)"; rm -f $D/snapshot-trying; fi
+  health
+) >/dev/null 2>&1 &
+exit 0
