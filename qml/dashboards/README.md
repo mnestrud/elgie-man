@@ -11,7 +11,7 @@ A dashboard is what the TV shows when Home is pressed. Each one is a folder here
 
 ## What they look like
 
-Taken on a webOS 25 TV with `"demo": true` in `config.json`, which swaps the app names for stand-ins and leaves out the icons in the Apps row. The Settings tile still shows the TV's own settings icon.
+Taken on a webOS 25 TV with `"demo": true` in `config.json`, which swaps the app names for stand-ins and leaves out the icons in the Apps row and on the Settings tile.
 
 | | |
 |---|---|

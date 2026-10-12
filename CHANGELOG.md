@@ -7,5 +7,5 @@
 - LG C5 (webOS 25) support: Home's id run under `qml-runner`; boot hook with failsafe and fault-restart guard; uninstall script.
 - Frame and dashboards split: `qml/Shell.qml` plus `qml/dashboards/<name>/`, with a written contract for new dashboards.
 - Colour schemes of the glass dashboard, `nord` and `gruvbox`, and a theme picker on the TV.
-- `demo` config key: stand-in app names and no icons in the Apps row, for screenshots.
+- `demo` config key: stand-in app names and no app icons, for screenshots.
 - `deploy.sh` installs only on the tested model and webOS pairs; `FORCE=1` overrides. The boot hooks do nothing on any other webOS version unless the install was forced.

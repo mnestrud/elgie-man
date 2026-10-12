@@ -58,7 +58,7 @@ scripts/deploy.sh <tv-ip>
 ```
 
 - **What it does:** copies the launcher to `/var/lib/elgie-man`, installs the boot hook for that TV, and runs it. The hook ends the running Home; the TV starts it again a few seconds later with the launcher. Then press Home.
-- **Check it worked:** `deploy.sh` prints "done" without confirming a start. Look for `launcher started` in `/tmp/elgie-man.log` on the TV about a minute later.
+- **Check it worked:** `deploy.sh` stops with an error if the TV could not download or unpack the package, but it does not wait for the launcher to start. Look for `launcher started` in `/tmp/elgie-man.log` on the TV about a minute later.
 - **Config:** a local `config.json` replaces the one on the TV at every deploy. With none, the TV gets `config.example.json` on first install, which differs from the defaults (see the table below).
 - **Background:** without `set-background.sh` there is no picture and glass shows a plain gradient.
 - **Update:** run `deploy.sh` again.
@@ -114,8 +114,10 @@ scripts/uninstall.sh <tv-ip>
 ```
 
 - **Removes** the hook, the mounts, `/var/lib/elgie-man` and (CX) the `[elgieman]` settings section, then ends Home so LG's starts. Tested on both TVs.
+- **The launcher's settings on that TV go with it:** the hidden list and anything changed in the settings panel.
 - **Does not restore** an app order changed in edit mode.
-- **Prints "uninstalled" without checking.** On the C5 it runs a script that the install left on the TV; if that file is gone, nothing is undone.
+- **If a mount will not come off, or (C5) Home stays blocked,** it stops with exit code 1, removes nothing more and says what to do. The hook is left switched off. These failure paths have not been seen or tested.
+- **C5:** it runs a script that the install left on the TV. If that file is gone, nothing is undone and it exits 1.
 - **Not gated:** it runs on any TV.
 
 ## Tested, and not
@@ -152,7 +154,7 @@ scripts/uninstall.sh <tv-ip>
 | `settingsId` | `com.palm.app.settings` | | App id opened by the Settings tile. |
 | `showClock`, `showMemory`, `showRunning` | `true` | | Show the clock, the free-memory figure, the row of open apps. |
 | `dashboard` | `glass` | | The theme the TV starts with. A theme picked on the TV wins. |
-| `demo` | `false` | | Stand-in app names and no app icons in the Apps row, for screenshots. |
+| `demo` | `false` | | Stand-in app names and no app icons, for screenshots. |
 | `debug` | `false` | | C5 only: log every key press to `debugLog` in `/var/lib/elgie-man/settings.conf`. |
 
 ## Where things are
