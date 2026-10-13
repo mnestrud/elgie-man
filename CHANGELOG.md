@@ -10,7 +10,7 @@
 - `demo` config key: stand-in app names and no app icons, for screenshots.
 - Pointer support: the tile or menu line under the remote's pointer takes the focus, a click is OK, the wheel steps along a row.
 - C5: Home no longer comes back over the screensaver when the TV relaunches it as the last app.
-- CX hook: the start check waits for the ended Home process to be gone before it watches for the new one.
+- CX hook: the start check waits up to 10 s for the ended Home process to be gone before it watches for the new one.
 - The health check baseline is recorded at every install, not only the first.
-- C5: the host keeps its event log in the settings file only with `debug` on; its unused app status subscription is removed.
+- C5: the host keeps its event log in the settings file only with `debug` on; its app status subscription, which never delivered an update, is removed.
 - `deploy.sh` installs only on the tested model and webOS pairs; `FORCE=1` overrides. The boot hooks do nothing on any other webOS version unless the install was forced.

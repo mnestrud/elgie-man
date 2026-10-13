@@ -108,8 +108,8 @@ Nothing on the TV's read-only system image is written. The rest:
 ## Safety nets
 
 - **Start check.** 45 s after the TV next starts Home, the hook checks that the launcher recorded a start. If not, it removes the mounts, turns itself off and shows a toast, and stays off until the next `deploy.sh`. It checks only that the launcher's code ran, not that the screen is right. Tested on both TVs.
-- **Health check.** After each start check the hook compares the number of inputs and the sound output with what they were at the last install, and shows a toast if either differs. It changes nothing. After changing the sound output yourself, run `deploy.sh` again to stop the toast.
-- **Version check.** At every boot the hook compares the webOS version with the tested one. If it differs, the hook does nothing, LG's Home stays and a toast says so. A firmware update that keeps the same webOS version number is not caught. Tested by running the hook by hand, not at a real boot.
+- **Health check.** After each start check the hook compares the number of inputs and the sound output with what they were at the last install that could read them, and shows a toast if either differs. It changes nothing. After changing the sound output yourself, running `deploy.sh` again records the new one (not tested with a changed output).
+- **Version check.** At every boot the hook compares the webOS version with the tested one. If it differs, the hook does nothing, LG's Home stays and a toast says so. A firmware update that keeps the same webOS version number is not caught. Tested at real boots on both TVs with the hook's expected version changed: LG's Home stayed and the toast showed.
 - **Fault guard (C5).** Two boots in a row that the TV records as fault restarts turn the hook off. Never triggered for real; only its reading of the boot reason has been checked.
 - **Off switch.** `touch /var/lib/elgie-man/disabled` on the TV, then reboot. The next `deploy.sh` removes it.
 - **A theme that fails to load** shows a plain message and Back still closes Home. Tested on the C5 only.
@@ -141,7 +141,7 @@ scripts/uninstall.sh <tv-ip>
 
 - picture and sound from HDMI sources with the launcher installed, by eye and ear;
 - the pointer on the C5;
-- Pause on Home with every app (checked: YouTube TV, YouTube, Netflix, Apple TV, Peacock, Paramount+);
+- Pause on Home with every app (checked: YouTube TV, YouTube, Netflix, Apple TV, Peacock, Paramount+; Prime Video and Max only at their browse screens, with no title playing);
 - any TV other than those two, and any other firmware.
 
 **Known problems:**
@@ -165,7 +165,7 @@ scripts/uninstall.sh <tv-ip>
 | `showClock`, `showMemory`, `showRunning` | `true` | | Show the clock, the free-memory figure, the row of open apps. |
 | `dashboard` | `glass` | | The theme the TV starts with. A theme picked on the TV wins. |
 | `demo` | `false` | | Stand-in app names and no app icons, for screenshots. |
-| `debug` | `false` | | C5 only: keep the host's last 60 events, and every key press, in `debugLog` in `/var/lib/elgie-man/settings.conf`. |
+| `debug` | `false` | | C5 only: keep the host's last 60 log lines in `debugLog` in `/var/lib/elgie-man/settings.conf`, with a line for each key press that reaches the host (not the arrows and OK that a tile or menu handles). Not re-tested since it was made a switch. |
 
 ## Where things are
 
