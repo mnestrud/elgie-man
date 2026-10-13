@@ -65,13 +65,15 @@ WebOSWindow {
         home.config = c;
     }
 
-    // The system log drops app messages, so the last lines are also kept in the
-    // settings file (debugLog) where they can be read from a shell.
+    // The system log drops app messages. With "debug" in the config the last lines
+    // are also kept in the settings file (debugLog), where they can be read from a
+    // shell; without it the file is not written on every show and hide.
     property var logLines: []
     function log(s) {
         console.warn("[elgie] " + s);
         var a = logLines.slice(-59); a.push(new Date().toTimeString().substr(0, 8) + " " + s);
-        logLines = a; settings.debugLog = a.join(" ~ ");
+        logLines = a;
+        if (home.config && home.config.debug === true) settings.debugLog = a.join(" ~ ");
     }
 
     function parsed(p) {
@@ -89,8 +91,9 @@ WebOSWindow {
     }
 
     // ----- shown by the TV -----
-    // The runner replaces "params" and then shows the window. Identical parameters
-    // may not signal a change, so the window becoming visible counts as well.
+    // The runner replaces "params" and then shows the window. The binding signals on
+    // every relaunch, identical parameters included; the window becoming visible
+    // counts as well, for a show that comes without a relaunch.
     property bool started: false
     property var launchParams: params
     onLaunchParamsChanged: if (started) { log("params " + JSON.stringify(parsed(launchParams))); show(parsed(launchParams)); }
@@ -183,19 +186,6 @@ WebOSWindow {
         root.visible = false;
     }
 
-    // The runner ignores sam's pause, so Home's own status tells it when another app
-    // has come forward. It is also the fallback for a relaunch the runner dropped.
-    property var life: null
-    Timer { id: lifeShow; interval: 300; onTriggered: if (!home.shown && !root.pendingShow) { root.log("shown from status"); root.show({}); } }
-    function watchLife() {
-        life = home.bus.call("com.webos.applicationManager", "getAppLifeStatus", {"subscribe": true}, function (ok, r) {
-            if (!ok || r.appId !== root.appId) return;
-            log("life " + r.status + (r.reason ? " " + r.reason : ""));
-            if (r.status === "relaunching") lifeShow.restart();
-            else if ((r.status === "pausing" || r.status === "background") && home.shown) hide();
-        });
-    }
-
     function loadConfig() {
         var x = new XMLHttpRequest();
         x.onreadystatechange = function () {
@@ -254,7 +244,6 @@ WebOSWindow {
         log("loaded reason=" + reason + " params=" + JSON.stringify(p));
         settings.lastStart = Date.now();     // read by the boot hook's failsafe
         loadConfig();
-        watchLife();
         watchSaver();
         started = true;
         if (reason !== "preload") show(p);

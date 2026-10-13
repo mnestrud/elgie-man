@@ -15,12 +15,12 @@ cp $N/tv-uninstall-c5.sh $D/uninstall.sh
 cp $N/05elgieman /var/lib/webosbrew/init.d/05elgieman; chmod 755 /var/lib/webosbrew/init.d/05elgieman
 echo "installed: $(ls $O | tr '\n' ' ')"
 
-# The health baseline is recorded once, before the launcher has ever run.
-if [ ! -f $D/health.env ]; then
-  echo INPUTS=$(luna-send -n 1 -w 5000 luna://com.webos.service.eim/getAllInputStatus '{}' | grep -o '"appId"' | wc -l) > $D/health.env
-  echo SOUND_OUTPUT=$(luna-send -n 1 -w 5000 luna://com.webos.service.apiadapter/audio/getSoundOutput '{}' | grep -o '"soundOutput":"[^"]*"' | cut -d'"' -f4) >> $D/health.env
-  cat $D/health.env
-fi
+# The health baseline is recorded at every install: the inputs and sound output as they
+# are now. A reading that came back empty keeps the one before.
+HI=$(luna-send -n 1 -w 5000 luna://com.webos.service.eim/getAllInputStatus '{}' | grep -o '"appId"' | wc -l)
+HS=$(luna-send -n 1 -w 5000 luna://com.webos.service.apiadapter/audio/getSoundOutput '{}' | grep -o '"soundOutput":"[^"]*"' | cut -d'"' -f4)
+if [ "$HI" -gt 0 ] && [ -n "$HS" ]; then echo INPUTS=$HI > $D/health.env; echo SOUND_OUTPUT=$HS >> $D/health.env; fi
+cat $D/health.env
 
 rm -f $D/disabled; rm -rf $N
 /var/lib/webosbrew/init.d/05elgieman; sleep 1; tail -3 /tmp/elgie-man.log

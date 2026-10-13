@@ -97,10 +97,12 @@ cp \$D/new/05elgieman /var/lib/webosbrew/init.d/05elgieman; chmod 755 /var/lib/w
 echo installed: \$(ls \$D/qml | tr '\n' ' ')"); echo "$OUT" | grep -v ' # '
 echo "$OUT" | grep -q '^installed:' || { echo "not installed: the TV did not report the install as done (download from http://$HOST:$PORT failed?)"; exit 1; }
 
-# Record the health baseline once, before the launcher has ever run.
-send "D=/var/lib/elgie-man; [ -f \$D/health.env ] && exit 0
-echo INPUTS=\$(luna-send -n 1 -w 5000 luna://com.webos.service.eim/getAllInputStatus '{}' | grep -o '\"appId\"' | wc -l) > \$D/health.env
-echo SOUND_OUTPUT=\$(luna-send -n 1 -w 5000 luna://com.webos.service.apiadapter/audio/getSoundOutput '{}' | grep -o '\"soundOutput\":\"[^\"]*\"' | cut -d'\"' -f4) >> \$D/health.env
+# Record the health baseline at every install: the inputs and sound output as they are
+# now. A reading that came back empty keeps the one before.
+send "D=/var/lib/elgie-man
+HI=\$(luna-send -n 1 -w 5000 luna://com.webos.service.eim/getAllInputStatus '{}' | grep -o '\"appId\"' | wc -l)
+HS=\$(luna-send -n 1 -w 5000 luna://com.webos.service.apiadapter/audio/getSoundOutput '{}' | grep -o '\"soundOutput\":\"[^\"]*\"' | cut -d'\"' -f4)
+if [ \"\$HI\" -gt 0 ] && [ -n \"\$HS\" ]; then echo INPUTS=\$HI > \$D/health.env; echo SOUND_OUTPUT=\$HS >> \$D/health.env; fi
 cat \$D/health.env"
 
 # Apply now: remove a stale disabled marker and any launcher snapshot made from the

@@ -2,12 +2,13 @@
 
 ## Shipped in this repo
 
-Every file here was written for this project and is under Apache-2.0 (`LICENSE`). Two sets of colour values come from published palettes:
+Every file here was written for this project and is under Apache-2.0 (`LICENSE`). Three sets of colour values come from published palettes:
 
 | Source | Licence | Used for |
 |---|---|---|
 | Nord (nordtheme.com) | MIT | The colour values in `qml/dashboards/nord/Dashboard.qml`. |
 | Gruvbox (github.com/morhetz/gruvbox) | MIT | The colour values in `qml/dashboards/gruvbox/Dashboard.qml`. |
+| Tailwind CSS (tailwindcss.com) | MIT | The default accent colour, the six accent choices and the two colours of the plain background in `qml/dashboards/glass/Dashboard.qml`, and the same values where other files repeat them. |
 
 ## Read, not copied
 
