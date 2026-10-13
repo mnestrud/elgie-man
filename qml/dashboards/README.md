@@ -55,6 +55,7 @@ Copy `nord/` and change the values. `palette` has `top` and `bottom` (the backgr
 | `back()` | Back was pressed. | Return `true` if the dashboard used the key (closed a menu, say). Otherwise Home hides. |
 
 - **Keys:** arrows, OK (`Keys.onReturnPressed` and `Keys.onEnterPressed`) and the rest arrive as normal Qt key events on the item with focus. Back and Home are handled by the frame.
+- **Pointer:** give anything that can be chosen a `MouseArea` with `hoverEnabled`; `qml/ui/TileRow.qml` shows how. Without one, the item cannot be chosen with the remote's pointer.
 
 ## What `tv` gives you
 

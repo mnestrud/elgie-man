@@ -1,6 +1,8 @@
 // The launcher's settings: a panel that drops in from the top with one tab per
 // section. sections = [{title, items: [{label, hint, value, on, swatch, run}]}].
 // Left/Right change the tab, Up/Down the setting, OK calls the setting's run().
+// With the pointer: a click on a tab or a setting does the same, a click below the
+// panel closes it.
 import QtQuick 2.7
 
 FocusScope {
@@ -51,6 +53,7 @@ FocusScope {
         opacity: panel.shown ? 0.45 : 0
         Behavior on opacity { NumberAnimation { duration: 260 } }
     }
+    MouseArea { anchors.fill: parent; enabled: panel.shown; hoverEnabled: true; onClicked: panel.close(); onWheel: wheel.accepted = true }
 
     GlassCard {
         id: card
@@ -61,6 +64,7 @@ FocusScope {
 
         Rectangle { anchors.fill: parent; anchors.margins: -18; color: Qt.rgba(panel.panelColor.r, panel.panelColor.g, panel.panelColor.b, panel.blurSource == "" ? 0.96 : 0.72) }
         Rectangle { anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: -18 } height: 4; color: panel.accent }
+        MouseArea { anchors.fill: parent; anchors.margins: -18 }
 
         Text { id: head; x: 78; y: 20; text: "Launcher settings"; color: panel.ink; font.pixelSize: 34; font.weight: Font.DemiBold }
 
@@ -76,6 +80,7 @@ FocusScope {
                     color: index === panel.tab ? panel.accent : "#22ffffff"
                     Text { id: tabLabel; anchors.centerIn: parent; text: modelData.title; font.pixelSize: 26
                            color: index === panel.tab ? panel.panelColor : panel.ink }
+                    MouseArea { anchors.fill: parent; onClicked: panel.setTab(index) }
                 }
             }
         }
@@ -126,6 +131,12 @@ FocusScope {
                         color: modelData.on === true ? panel.accent : panel.ink
                         opacity: modelData.on === false ? 0.6 : 1
                     }
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onPositionChanged: list.currentIndex = index
+                    onClicked: { list.currentIndex = index; panel.run(); }
                 }
             }
 

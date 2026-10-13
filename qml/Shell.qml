@@ -165,10 +165,12 @@ FocusScope {
         anchors.fill: parent
         visible: false
         Rectangle { anchors.fill: parent; color: "black"; opacity: 0.6 }
+        MouseArea { anchors.fill: parent; hoverEnabled: true; onClicked: tv.closePicker(); onWheel: wheel.accepted = true }
         Rectangle {
             anchors.centerIn: parent
             width: 620; height: 170 + Math.min(tv.themes.length, 8) * 76
             color: "#0f172a"; border.width: 2; border.color: "#7dd3fc"
+            MouseArea { anchors.fill: parent }
             Text { x: 40; y: 28; color: "white"; font.pixelSize: 36; text: "Theme" }
             Text { x: 40; y: parent.height - 50; color: "white"; opacity: 0.6; font.pixelSize: 20; text: "OK: use this theme    Back: close" }
             ListView {
@@ -192,6 +194,12 @@ FocusScope {
                         visible: modelData === tv.theme
                         color: parent.ListView.isCurrentItem ? "#0b1220" : "white"; font.pixelSize: 22
                         text: "In use"
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onPositionChanged: pickList.currentIndex = index
+                        onClicked: tv.chooseTheme(modelData)
                     }
                 }
                 Keys.onReturnPressed: tv.chooseTheme(tv.themes[currentIndex])

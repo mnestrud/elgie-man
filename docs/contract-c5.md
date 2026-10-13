@@ -1,6 +1,6 @@
 # C5 (webOS 10.3.1, "webOS 25") Home contract
 
-Observed on an LG C5 on 2026-10-09. Names and behaviour only.
+Observed on an LG C5 from 2026-10-09 to 2026-10-13. Names and behaviour only.
 
 ## How Home is found
 
@@ -18,7 +18,7 @@ Observed on an LG C5 on 2026-10-09. Names and behaviour only.
 
 - A manifest override with `type: "qml"` and `main: "main.qml"` (all other keys kept) runs Home as `qml-runner` with Home's app id.
 - Under that id, luna calls from QML (`WebOSServices.Service`, `appId: "com.webos.app.home"`) work:
-  - sam `listLaunchPoints`, `running`, `launch`, `closeByAppId`, `getAppInfo`, `getForegroundAppInfo`, `getAppLifeStatus`, `moveLaunchPoint`;
+  - sam `listLaunchPoints`, `running`, `launch`, `closeByAppId`, `getAppInfo`, `getForegroundAppInfo`, `moveLaunchPoint` (`getAppLifeStatus` accepts the subscription; see "`getAppLifeStatus` in QML" below);
   - eim `getAllInputStatus`;
   - networkinput `controls/pause`;
   - homelaunchpoints `listLaunchPoints`, `moveLaunchPoint`, `hideLaunchPoint`, `unhideLaunchPoint`. `unhideLaunchPoint` re-appends the tile at the end.
@@ -39,6 +39,9 @@ Observed on an LG C5 on 2026-10-09. Names and behaviour only.
 - **Default Home app.** `launchDefaultApp {category: "home"}` fails with "no default app is set for the category" when `general.defaultApps.home` names an app that is not installed. `setDefaultApp {category: "home", appId: "com.webos.app.home"}` repairs it.
 - **In standby after a restart** no Home process exists; sam launches Home at power-on with `reason: "boot"`.
 - **When the foreground app's process ends** and Home was in front, sam launches Home itself as the last app (`reason: "undefined"`, empty parameters).
+- **Idle.** After two minutes without a key the compositor closes Home's window (`closeWindow`, reason `windowPolicy`). An input under Home stays in front (seen with Live TV; not checked with an app). With nothing under it, sam launches the last app one second later: Home on the first two such launches, then the last input (seen once).
+- **Screensaver.** tvpower launches `com.webos.app.screensaver` after three idle minutes when Home is the only app in front. The compositor closes Home's window, and sam then launches Home as the last app (empty parameters). A Home window shown at that point makes the compositor close the screensaver, so the host stays hidden on a launch without `launchType: "homeKey"` while the screensaver is up. It is not the app in the plain `getForegroundAppInfo` reply and no `getAppLifeStatus` update for it reached QML; `getForegroundAppInfo` with `extraInfo: true` lists it. After Back ended it, the last input was in front (seen once).
+- **`getAppLifeStatus` in QML.** An update for Home arrived on the service's failure signal (seen once, 2026-10-13). `Luna.qml` drops a call that fails, so the host's status subscription ends there.
 
 ## Things that harm the TV
 

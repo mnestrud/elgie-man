@@ -37,6 +37,12 @@ FocusScope {
                 color: parent.ListView.isCurrentItem ? "#0b1220" : "white"; font.pixelSize: 30
                 text: modelData.title
             }
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onPositionChanged: list.currentIndex = index
+                onClicked: { list.currentIndex = index; list.open(); }
+            }
         }
         Keys.onReturnPressed: open()
         Keys.onEnterPressed: open()

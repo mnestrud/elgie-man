@@ -21,13 +21,20 @@ Both keep Home's app id, so the Home key still opens it. `docs/contract-cx.md` a
 - **CX, with `pauseUnderHome` on:** Home takes over the screen and the app under it goes to the background, where LG's Home sat on top of it. Back then reopens that app, or the last input if the app has closed. Some apps reload when reopened. The example config turns this off.
 - **CX, at power-on:** if Home Auto Launch is on in the TV's settings, the launcher stays on screen until dismissed. LG's Home hid itself after a few seconds.
 - **C5:** the Menu key opens the launcher in edit mode.
-- **No pointer support.** It is driven with the arrow keys and OK.
 - **Not there:** ads, promotions, the hero banner, recommendation shelves, sports alerts, search, install progress, the account label, the quick guide, music and weather.
-- **Screensaver: not tested.** Whether the TV's screensaver still appears over the launcher has not been checked on either TV.
+
+## Left idle
+
+LG's Home was not watched for comparison.
+
+- **Over an input,** the TV closes Home after two minutes and the input stays (seen on the C5, and on the CX with `pauseUnderHome` off; not checked over an app).
+- **With nothing under it** (the C5 with no app or input in front; the CX with `pauseUnderHome` on), the TV's screensaver comes up after about three minutes on the C5 and a little over two on the CX, and stays (one run each). On the C5, Home is closed and reappears once at two minutes first.
+- **When Back ended the screensaver,** the CX showed Home again and the C5 showed its last input (seen once each).
 
 ## What you get
 
 - **Rows:** apps in the order the TV reports them, open apps, inputs, and a TV row (LG's settings, Free up memory, Edit, Launcher settings).
+- **Arrow keys or the remote's pointer.** The tile under the moving pointer takes the focus, a click is OK, and the wheel steps along a row. A click beside a menu closes it. Moving a tile in edit mode is done with the arrow keys.
 - **Edit mode:** move or hide app tiles; hide inputs.
 - **Free up memory:** closes the apps on a list you choose.
 - **Launcher settings:** a panel on the TV for theme, see-through background, accent colour, clock, free-memory figure, the Running row, Pause on Home, the CX background switch and the Free up memory list. A setting changed there is kept on that TV and wins over `config.json` until "Reset launcher settings".
@@ -124,13 +131,16 @@ scripts/uninstall.sh <tv-ip>
 
 **Tested on one CX and one C5:** install and update, Home and Back, launching apps and inputs, edit mode, the settings panel, the theme picker, reboot, standby and power-on, the start check reverting a broken install, uninstall and reinstall.
 
-**Tested on the CX only:** the overnight suspend and morning wake; restoring the launcher from a snapshot (the C5 does not use one).
+**Tested on both, once each:** the overnight suspend and morning wake (CX: on an earlier build); what happens when Home is left idle ("Left idle").
+
+**Tested on the CX only:** restoring the launcher from a snapshot (the C5 does not use one).
+
+**Pointer:** tried by hand once with the remote, on the CX, and reported working. Hover, click, wheel and the menus were not checked one by one.
 
 **Not tested:**
 
-- the overnight suspend on the C5;
 - picture and sound from HDMI sources with the launcher installed, by eye and ear;
-- the screensaver;
+- the pointer on the C5;
 - Pause on Home with every app (checked: YouTube TV, YouTube, Netflix, Apple TV, Peacock, Paramount+);
 - any TV other than those two, and any other firmware.
 

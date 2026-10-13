@@ -1,5 +1,5 @@
 // A labelled horizontal row of glass tiles. The model is a JS array of objects with
-// title, icon, glyph, color and dim; activated(index, entry) fires on OK.
+// title, icon, glyph, color and dim; activated(index, entry) fires on OK or a click.
 import QtQuick 2.7
 
 FocusScope {
@@ -27,6 +27,27 @@ FocusScope {
             list.currentIndex = Math.max(0, Math.min(row.wanted, row.entries.length - 1));
             row.restoring = false;
         });
+    }
+
+    // Pointer: the tile under the moving pointer takes the focus and the wheel steps
+    // along the row. A tile that slides under a still pointer is left alone, so a
+    // scroll the pointer started does not run on by itself.
+    property point pointer: Qt.point(-1, -1)
+    Timer { id: settle; interval: 250 }
+    function pick(i) {
+        if (!row.activeFocus) row.forceActiveFocus();
+        if (list.currentIndex !== i) { list.currentIndex = i; settle.restart(); }
+    }
+    function pointed(i, p) {
+        if (p.x === pointer.x && p.y === pointer.y) return;
+        pointer = p;
+        if (!row.lifted && !settle.running) pick(i);
+    }
+    function wheeled(delta) {
+        if (row.lifted || !delta) return;
+        if (!row.activeFocus) row.forceActiveFocus();
+        setIndex(list.currentIndex + (delta < 0 ? 1 : -1));
+        settle.restart();
     }
 
     implicitHeight: 52 + 156 + 24
@@ -75,6 +96,16 @@ FocusScope {
             glass: row.glass
             current: row.activeFocus && ListView.isCurrentItem
             lifted: current && row.lifted
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onPositionChanged: row.pointed(index, mapToItem(null, mouse.x, mouse.y))
+                onClicked: {
+                    if (!row.lifted) row.pick(index);
+                    row.activated(list.currentIndex, row.entries[list.currentIndex]);
+                }
+                onWheel: row.wheeled(wheel.angleDelta.y || wheel.angleDelta.x)
+            }
         }
 
         Keys.priority: Keys.BeforeItem

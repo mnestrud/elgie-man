@@ -137,9 +137,28 @@ WebOSWindow {
             if (again && root.pendingShow) secondPause.restart(); else showAfterPause.restart();
         });
     }
+    // The screensaver closes Home, and with nothing else in front the TV then launches
+    // Home again as the last app; a window shown then would close the screensaver.
+    // Only the Home key brings Home up while the screensaver is in front.
+    // The screensaver is not reported as the app in front, only in the full list.
+    readonly property string saverId: "com.webos.app.screensaver"
+    property bool saverUp: false
+    property var saverWatch: null
+    function watchSaver() {
+        saverWatch = home.bus.call("com.webos.applicationManager", "getForegroundAppInfo", {"subscribe": true, "extraInfo": true}, function (ok, r) {
+            var up = false, list = (ok && r.foregroundAppInfo) || [];
+            for (var i = 0; i < list.length; i++) if (list[i].appId === root.saverId) up = true;
+            if (up !== root.saverUp) { root.saverUp = up; root.log("screensaver " + (up ? "up" : "gone")); }
+        });
+    }
     function show(p) {
         var id = home.foreground.appId;
         if (pendingShow) return;
+        if (saverUp && (p || {}).launchType !== "homeKey") {
+            log("left to the screensaver");
+            if (root.visible) root.visible = false;
+            return;
+        }
         pendingShow = p || {};
         if (!pauseApps || home.shown || !id || id === root.appId || home.foreground.isInput(id)) { reveal(); return; }
         pausing = true;
@@ -236,6 +255,7 @@ WebOSWindow {
         settings.lastStart = Date.now();     // read by the boot hook's failsafe
         loadConfig();
         watchLife();
+        watchSaver();
         started = true;
         if (reason !== "preload") show(p);
     }

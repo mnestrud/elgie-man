@@ -27,6 +27,8 @@ FocusScope {
     }
 
     Rectangle { anchors.fill: parent; color: "#99000000" }
+    // Keeps the pointer off what is under the sheet; a click beside the card closes it.
+    MouseArea { anchors.fill: parent; hoverEnabled: true; onClicked: sheet.close(); onWheel: wheel.accepted = true }
 
     GlassCard {
         id: card
@@ -36,6 +38,7 @@ FocusScope {
 
         // Without a blurred picture behind it the card needs a body of its own.
         Rectangle { anchors.fill: parent; anchors.margins: -18; visible: sheet.blurSource == ""; color: sheet.panel }
+        MouseArea { anchors.fill: parent; anchors.margins: -18 }
         Text { id: head; text: sheet.title; color: sheet.ink; font.pixelSize: 30; font.weight: Font.DemiBold; elide: Text.ElideRight; width: parent.width }
         ListView {
             id: list
@@ -48,9 +51,16 @@ FocusScope {
                 width: list.width; height: 68
                 color: ListView.isCurrentItem ? sheet.accent : "#22ffffff"
                 Text { anchors.centerIn: parent; text: modelData.label; color: parent.ListView.isCurrentItem ? sheet.panel : sheet.ink; font.pixelSize: 26 }
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onPositionChanged: list.currentIndex = index
+                    onClicked: { list.currentIndex = index; list.run(); }
+                }
             }
-            Keys.onReturnPressed: { var a = sheet.actions[currentIndex]; sheet.close(); if (a && a.run) a.run(); }
-            Keys.onEnterPressed: { var a = sheet.actions[currentIndex]; sheet.close(); if (a && a.run) a.run(); }
+            function run() { var a = sheet.actions[currentIndex]; sheet.close(); if (a && a.run) a.run(); }
+            Keys.onReturnPressed: run()
+            Keys.onEnterPressed: run()
         }
     }
 }

@@ -8,4 +8,6 @@
 - Frame and dashboards split: `qml/Shell.qml` plus `qml/dashboards/<name>/`, with a written contract for new dashboards.
 - Colour schemes of the glass dashboard, `nord` and `gruvbox`, and a theme picker on the TV.
 - `demo` config key: stand-in app names and no app icons, for screenshots.
+- Pointer support: the tile or menu line under the remote's pointer takes the focus, a click is OK, the wheel steps along a row.
+- C5: Home no longer comes back over the screensaver when the TV relaunches it as the last app.
 - `deploy.sh` installs only on the tested model and webOS pairs; `FORCE=1` overrides. The boot hooks do nothing on any other webOS version unless the install was forced.
