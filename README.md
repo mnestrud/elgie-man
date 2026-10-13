@@ -135,12 +135,11 @@ scripts/uninstall.sh <tv-ip>
 
 **Tested on the CX only:** restoring the launcher from a snapshot (the C5 does not use one).
 
-**Pointer:** tried by hand once with the remote, on the CX, and reported working. Hover, click, wheel and the menus were not checked one by one.
+**Pointer:** tried by hand with the remote on the CX and the C5, and reported working on both. Hover, click, wheel and the menus were not checked one by one.
 
 **Not tested:**
 
 - picture and sound from HDMI sources with the launcher installed, by eye and ear;
-- the pointer on the C5;
 - Pause on Home with every app (checked: YouTube TV, YouTube, Netflix, Apple TV, Peacock, Paramount+; Prime Video and Max only at their browse screens, with no title playing);
 - any TV other than those two, and any other firmware.
 
