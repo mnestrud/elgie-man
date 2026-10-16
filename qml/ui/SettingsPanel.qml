@@ -11,7 +11,7 @@ FocusScope {
     property url blurSource
     property color accent: "#7dd3fc"
     property color ink: "white"
-    property color panelColor: "#0b1220"    // the panel itself, and text on the accent colour
+    property color panelColor: "#0b1220"    // the panel itself, and text on the accent color
     property var sections: []
     property int tab: 0
     property bool shown: false

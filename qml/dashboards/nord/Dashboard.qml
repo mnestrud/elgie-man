@@ -1,5 +1,5 @@
-// The glass dashboard in the Nord colours: cool blue-greys with frost accents.
-// Colour values from the Nord palette (MIT licence; see THIRD_PARTY.md).
+// The glass dashboard in the Nord colors: cool blue-greys with frost accents.
+// Color values from the Nord palette (MIT license; see THIRD_PARTY.md).
 import QtQuick 2.7
 import "../glass" as Glass
 

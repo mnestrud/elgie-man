@@ -37,8 +37,8 @@ LG's Home was not watched for comparison.
 - **Arrow keys or the remote's pointer.** The tile under the moving pointer takes the focus, a click is OK, and the wheel steps along a row. A click beside a menu closes it. Moving a tile in edit mode is done with the arrow keys.
 - **Edit mode:** move or hide app tiles; hide inputs.
 - **Free up memory:** closes the apps on a list you choose.
-- **Launcher settings:** a panel on the TV for theme, see-through background, accent colour, clock, free-memory figure, the Running row, Pause on Home, the CX background switch and the Free up memory list. A setting changed there is kept on that TV and wins over `config.json` until "Reset launcher settings".
-- **Themes:** the glass look over your own picture, and two colour schemes of it (`nord`, `gruvbox`), picked under Launcher settings → Look → Theme. Writing your own is covered in [`qml/dashboards/README.md`](qml/dashboards/README.md).
+- **Launcher settings:** a panel on the TV for theme, see-through background, accent color, clock, free-memory figure, the Running row, Pause on Home, the CX background switch and the Free up memory list. A setting changed there is kept on that TV and wins over `config.json` until "Reset launcher settings".
+- **Themes:** the glass look over your own picture, and two color schemes of it (`nord`, `gruvbox`), picked under Launcher settings → Look → Theme. Writing your own is covered in [`qml/dashboards/README.md`](qml/dashboards/README.md).
 - **The launcher makes no sounds of its own.** It does stop app sound in the cases above (Pause on Home, the CX background switch, Free up memory).
 
 ## Requirements
@@ -154,7 +154,7 @@ scripts/uninstall.sh <tv-ip>
 
 | Key | Default | Example | What it does |
 |---|---|---|---|
-| `accent` | `#7dd3fc` | | Colour of the focus ring and highlights. `nord` and `gruvbox` have their own set and ignore other colours. |
+| `accent` | `#7dd3fc` | | Color of the focus ring and highlights. `nord` and `gruvbox` have their own set and ignore other colors. |
 | `backgroundOpacity` | `1` | `0.85` | Below 1, the app behind Home shows through the background (C5, and CX with `pauseUnderHome` off). |
 | `pauseOnHome` | `true` | | Send Pause to the app in front before Home appears. |
 | `pauseTwiceApps` | `["com.cbs-all-access.webapp.prod"]` | | App ids that get Pause twice: the first only brings up their player controls. |
@@ -181,6 +181,6 @@ scripts/uninstall.sh <tv-ip>
 
 On the TV: files in `/var/lib/elgie-man`, the hook in `/var/lib/webosbrew/init.d/05elgieman`, the hook's log in `/tmp/elgie-man.log`.
 
-## Licence and origin
+## License and origin
 
 Apache-2.0 (`LICENSE`). The code was written for this project; what was consulted is in [`THIRD_PARTY.md`](THIRD_PARTY.md). Not affiliated with LG.

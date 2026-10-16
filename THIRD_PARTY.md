@@ -2,21 +2,21 @@
 
 ## Shipped in this repo
 
-Every file here was written for this project and is under Apache-2.0 (`LICENSE`). Three sets of colour values come from published palettes:
+Every file here was written for this project and is under Apache-2.0 (`LICENSE`). Three sets of color values come from published palettes:
 
-| Source | Licence | Used for |
+| Source | License | Used for |
 |---|---|---|
-| Nord (nordtheme.com) | MIT | The colour values in `qml/dashboards/nord/Dashboard.qml`. |
-| Gruvbox (github.com/morhetz/gruvbox) | MIT | The colour values in `qml/dashboards/gruvbox/Dashboard.qml`. |
-| Tailwind CSS (tailwindcss.com) | MIT | The six accent choices (the first is the default) and the two colours of the plain background in `qml/dashboards/glass/Dashboard.qml`, and the same values where other files repeat them. |
+| Nord (nordtheme.com) | MIT | The color values in `qml/dashboards/nord/Dashboard.qml`. |
+| Gruvbox (github.com/morhetz/gruvbox) | MIT | The color values in `qml/dashboards/gruvbox/Dashboard.qml`. |
+| Tailwind CSS (tailwindcss.com) | MIT | The six accent choices (the first is the default) and the two colors of the plain background in `qml/dashboards/glass/Dashboard.qml`, and the same values where other files repeat them. |
 
 ## Read, not copied
 
-| Source | Licence | Used for |
+| Source | License | Used for |
 |---|---|---|
-| webOS OSE, `webosose/qml-webos-framework` (`tools/runner/`, `src/common/webosquickwindow.cpp`) | Apache-2.0 | How `qml-runner` handles launch, relaunch and close. Recorded as behaviour in `docs/contract-c5.md`. |
+| webOS OSE, `webosose/qml-webos-framework` (`tools/runner/`, `src/common/webosquickwindow.cpp`) | Apache-2.0 | How `qml-runner` handles launch, relaunch and close. Recorded as behavior in `docs/contract-c5.md`. |
 | Qt documentation (QtQuick 2.7, Qt.labs.settings) | GFDL | The QML language and types. |
-| LG's software on the TVs it was tested on | proprietary | Observed to learn names and behaviour only (`docs/contract-cx.md`, `docs/contract-c5.md`). |
+| LG's software on the TVs it was tested on | proprietary | Observed to learn names and behavior only (`docs/contract-cx.md`, `docs/contract-c5.md`). |
 
 ## Used on the TV at run time, never shipped
 

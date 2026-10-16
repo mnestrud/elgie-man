@@ -17,9 +17,9 @@ FocusScope {
     readonly property var memory: tv.memory
     readonly property bool shown: tv.shown
     readonly property bool overlayOnly: tv.overlayOnly
-    // Colours. A colour variant (qml/dashboards/nord/, gruvbox/) is this dashboard with
+    // Colours. A color variant (qml/dashboards/nord/, gruvbox/) is this dashboard with
     // a palette: {top, bottom, panel, ink, glass, accents: [{name, color}]}. With a palette the
-    // background is its two colours instead of the picture.
+    // background is its two colors instead of the picture.
     property var palette: ({})
     readonly property bool plain: !!palette.top
     readonly property color ink: palette.ink || "white"
@@ -31,7 +31,7 @@ FocusScope {
     ]
     property url backgroundSource: plain ? "" : tv.dataDir + "bg.jpg"
     property url blurSource: plain ? "" : tv.dataDir + "bg-blur.jpg"
-    // A palette keeps to its own accents: a colour set for another look gives way to its first.
+    // A palette keeps to its own accents: a color set for another look gives way to its first.
     function chosenAccent() {
         var c = String(config.accent || "").toLowerCase();
         if (!palette.accents) return c || accents[0].color;
@@ -216,7 +216,7 @@ FocusScope {
     function accentItem() {
         var list = accents, at = -1, now = String(baseAccent).toLowerCase();
         for (var i = 0; i < list.length; i++) if (list[i].color === now) at = i;
-        return {label: "Accent colour", hint: "The colour of the focus ring, bars and highlights.",
+        return {label: "Accent color", hint: "The color of the focus ring, bars and highlights.",
                 value: at < 0 ? now : list[at].name, swatch: now,
                 run: function () { home.set("accent", list[(at + 1) % list.length].color); }};
     }
@@ -255,7 +255,7 @@ FocusScope {
             appItems.push(toggleItem("Put the app in the background", "Home takes over the screen instead of sitting on top of the app, which makes some apps reload.", "pauseUnderHome"));
         return [
             {title: "Look", items: [
-                {label: "Theme", hint: "The colours of Home.",
+                {label: "Theme", hint: "The colors of Home.",
                  value: tv.themeTitle(tv.theme), run: function () { tv.pickTheme(); }},
                 opacityItem(),
                 accentItem(),

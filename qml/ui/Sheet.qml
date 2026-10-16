@@ -7,7 +7,7 @@ FocusScope {
     property url blurSource
     property color accent: "#7dd3fc"
     property color ink: "white"
-    property color panel: "#0b1220"         // text on the accent colour
+    property color panel: "#0b1220"         // text on the accent color
     property string title: ""
     property var actions: []
     property Item returnFocus

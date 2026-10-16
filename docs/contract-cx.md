@@ -1,6 +1,6 @@
 # CX (webOS 5.6.2) Home host contract
 
-Observed on an LG CX on 2026-10-09. This file covers names and behaviour only.
+Observed on an LG CX on 2026-10-09. This file covers names and behavior only.
 
 ## Loading
 
@@ -87,7 +87,7 @@ XHR can:
 - read `file:///proc/meminfo` and root-only files;
 - HTTP requests by IP work from QML. Hostnames from the LAN do not resolve on the TV.
 
-`Qt.labs.settings` with no organisation set persists to `/home/root/.config/Unknown Organization/com.webos.app.home.conf`.
+`Qt.labs.settings` with no organization set persists to `/home/root/.config/Unknown Organization/com.webos.app.home.conf`.
 
 ## Pausing an app from outside
 

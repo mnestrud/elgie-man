@@ -1,6 +1,6 @@
 # C5 (webOS 10.3.1, "webOS 25") Home contract
 
-Observed on an LG C5 from 2026-10-09 to 2026-10-13. Names and behaviour only.
+Observed on an LG C5 from 2026-10-09 to 2026-10-13. Names and behavior only.
 
 ## How Home is found
 

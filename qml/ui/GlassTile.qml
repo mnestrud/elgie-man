@@ -16,7 +16,7 @@ Item {
     property bool lifted: false            // being moved in edit mode
     property color accent: "#7dd3fc"
     property color ink: "white"
-    property color glass: "white"          // the colour of the tile's own tint
+    property color glass: "white"          // the color of the tile's own tint
 
     width: 248; height: 156
     z: current ? 2 : 1

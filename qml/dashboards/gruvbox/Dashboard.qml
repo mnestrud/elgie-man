@@ -1,5 +1,5 @@
-// The glass dashboard in the Gruvbox dark colours: warm browns with a cream text
-// and bright accents. Colour values from the Gruvbox palette (MIT licence; see
+// The glass dashboard in the Gruvbox dark colors: warm browns with a cream text
+// and bright accents. Color values from the Gruvbox palette (MIT license; see
 // THIRD_PARTY.md).
 import QtQuick 2.7
 import "../glass" as Glass

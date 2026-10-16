@@ -5,8 +5,8 @@ A dashboard is what the TV shows when Home is pressed. Each one is a folder here
 | Folder | What it is |
 |---|---|
 | `glass/` | The launcher: tile rows for apps, running apps, inputs and TV actions, edit mode, settings panel. |
-| `nord/` | `glass` in the Nord colours: cool blue-greys, frost accents. A few lines that set a palette. |
-| `gruvbox/` | `glass` in the Gruvbox dark colours: warm browns, cream text, bright accents. |
+| `nord/` | `glass` in the Nord colors: cool blue-greys, frost accents. A few lines that set a palette. |
+| `gruvbox/` | `glass` in the Gruvbox dark colors: warm browns, cream text, bright accents. |
 | `starter/` | The time and one row of app names. About 50 lines; copy it to begin. |
 
 ## What they look like
@@ -24,9 +24,9 @@ Taken on a webOS 25 TV with `"demo": true` in `config.json`, which swaps the app
 - **Picking one:** Launcher settings → Look → Theme. The choice is kept on that TV.
 - **Start-up:** the TV loads the dashboard chosen at deploy time, then swaps to the picked one. A picked dashboard that does not load gives way to the deployed one.
 
-## A colour scheme of glass
+## A color scheme of glass
 
-Copy `nord/` and change the values. `palette` has `top` and `bottom` (the background, in place of the picture), `panel` (the settings panel and text on the accent colour), `ink` (text), `glass` (the tint of the tiles) and `accents` (the choices under Accent colour; the first is the default).
+Copy `nord/` and change the values. `palette` has `top` and `bottom` (the background, in place of the picture), `panel` (the settings panel and text on the accent color), `ink` (text), `glass` (the tint of the tiles) and `accents` (the choices under Accent color; the first is the default).
 
 ## One dashboard, both TV families
 
@@ -88,8 +88,8 @@ The glass parts in `qml/ui/` (`GlassTile`, `GlassCard`, `TileRow`, `FocusRing`, 
 - **Leave the window see-through or not as you like.** Nothing is drawn behind the dashboard; the app in front shows through anything not painted.
 - **Hostnames do not resolve on the TVs.** Use IP addresses for requests.
 - **No sound.**
-- **No one else's names, logos, characters, lettering or artwork,** including in a look that is "inspired by" something. Use fonts already on the TV by name; do not ship font files without their licence.
-- **Your own work only,** under the repo's licence (Apache-2.0). No code, layouts, images, icons or text taken from LG's software. Name the source and licence of anything else you include.
+- **No one else's names, logos, characters, lettering or artwork,** including in a look that is "inspired by" something. Use fonts already on the TV by name; do not ship font files without their license.
+- **Your own work only,** under the repo's license (Apache-2.0). No code, layouts, images, icons or text taken from LG's software. Name the source and license of anything else you include.
 
 ## If it does not load
 
