@@ -15,5 +15,14 @@
   ],
   "settingsId": "com.palm.app.settings",
   "backgroundOpacity": 0.85,
-  "pauseOnHome": true
+  "pauseOnHome": true,
+  "systemApps": [
+    "com.webos.app.browser_default",
+    "com.webos.app.igallery_default",
+    "com.webos.app.music_default",
+    "com.webos.app.photovideo_default",
+    "com.webos.app.sportsteamsettings_default",
+    "com.webos.app.homeconnect_default",
+    "amazon.alexa.view_default"
+  ]
 }

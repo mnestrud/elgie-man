@@ -5,7 +5,7 @@
 D=/var/lib/elgie-man; O=$D/c5home; N=/tmp/elgie-new
 mkdir -p $O
 [ -f $D/config.json ] && [ ! -f $N/config.force ] && rm $N/config.json
-for f in config.json bg.jpg bg-blur.jpg; do [ -f $N/$f ] && mv $N/$f $D/$f; done
+for f in config.json bg.jpg; do [ -f $N/$f ] && mv $N/$f $D/$f; done
 chmod 600 $D/config.json
 rm -f $D/force; [ -f $N/force ] && mv $N/force $D/force
 # The folder may be mounted over Home's, so its files are replaced in place.

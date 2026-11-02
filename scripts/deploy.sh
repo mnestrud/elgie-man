@@ -54,7 +54,7 @@ cp "qml/hosts/$FAMILY/main.qml" "$STAGE/pkg/qml/main.qml"
 # (or gets the example on first install).
 if [ -f "$CFG" ]; then cp "$CFG" "$STAGE/pkg/config.json"; touch "$STAGE/pkg/config.force"
 else cp config.example.json "$STAGE/pkg/config.json"; fi
-for f in bg.jpg bg-blur.jpg; do [ -f "backgrounds/$f" ] && cp "backgrounds/$f" "$STAGE/pkg/"; done
+[ -f backgrounds/bg.jpg ] && cp backgrounds/bg.jpg "$STAGE/pkg/"
 [ -n "${FORCED:-}" ] && touch "$STAGE/pkg/force"
 if [ $FAMILY = c5 ]; then
   cp init.d/05elgieman-c5 "$STAGE/pkg/05elgieman"
@@ -89,7 +89,7 @@ OUT=$(send "set -e; D=/var/lib/elgie-man; mkdir -p \$D; cd \$D
 wget -q -O /tmp/elgie-man.tgz http://$HOST:$PORT/elgie-man.tgz
 rm -rf \$D/new; mkdir \$D/new; tar -xzf /tmp/elgie-man.tgz -C \$D/new; rm /tmp/elgie-man.tgz
 [ -f \$D/config.json ] && [ ! -f \$D/new/config.force ] && rm \$D/new/config.json || true
-for f in config.json bg.jpg bg-blur.jpg; do [ -f \$D/new/\$f ] && mv \$D/new/\$f \$D/\$f; done
+for f in config.json bg.jpg; do [ -f \$D/new/\$f ] && mv \$D/new/\$f \$D/\$f; done
 chmod 600 \$D/config.json
 rm -f \$D/force; [ -f \$D/new/force ] && mv \$D/new/force \$D/force
 rm -rf \$D/qml.old; [ -d \$D/qml ] && mv \$D/qml \$D/qml.old; mv \$D/new/qml \$D/qml
@@ -106,8 +106,11 @@ if [ \"\$HI\" -gt 0 ] && [ -n \"\$HS\" ]; then echo INPUTS=\$HI > \$D/health.env
 cat \$D/health.env"
 
 # Apply now: remove a stale disabled marker and any launcher snapshot made from the
-# old QML, then restart Home on the new QML.
+# old QML, then restart Home on the new QML. The running Home keeps the old bind mount
+# busy, so it is detached lazily: the hook then mounts the new folder, and the old one
+# goes when Home is killed. The last line checks the mount holds the new files.
 send "rm -f /var/lib/elgie-man/disabled; rm -rf /var/lib/elgie-man/snapshot/*; Q=/usr/palm/applications/com.webos.app.home/qml
-grep -q \" \$Q \" /proc/mounts && umount \$Q
-/var/lib/webosbrew/init.d/05elgieman; sleep 1; tail -2 /tmp/elgie-man.log"
+grep -q \" \$Q \" /proc/mounts && { umount \$Q 2>/dev/null || umount -l \$Q; }
+/var/lib/webosbrew/init.d/05elgieman; sleep 1; tail -2 /tmp/elgie-man.log
+cmp -s /var/lib/elgie-man/qml/Shell.qml \$Q/Shell.qml && echo mounted: new files || echo mounted: STALE files"
 echo "done. Press Home on the TV; the failsafe check runs 45 s after the restart (see /tmp/elgie-man.log)."

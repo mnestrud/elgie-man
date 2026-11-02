@@ -32,8 +32,8 @@ clear_tmp_snapshot() { rm -rf $TMPIMG /tmp/checkpoint/hash_check_$APP; }
 
 revert() {
   log "failsafe: $1"
-  grep -q " $Q " /proc/mounts && umount $Q
-  grep -q " $STORED " /proc/mounts && umount $STORED
+  grep -q " $Q " /proc/mounts && { umount $Q 2>/dev/null || umount -l $Q; }
+  grep -q " $STORED " /proc/mounts && { umount $STORED 2>/dev/null || umount -l $STORED; }
   clear_tmp_snapshot
   [ -f /tmp/elgie-criu_enable.bak ] && mv /tmp/elgie-criu_enable.bak /tmp/criu_enable
   touch $D/disabled

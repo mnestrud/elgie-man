@@ -2,10 +2,11 @@
 
 ## Shipped in this repo
 
-Every file here was written for this project and is under Apache-2.0 (`LICENSE`). Three sets of color values come from published palettes:
+Every file here was written for this project and is under Apache-2.0 (`LICENSE`), except one font file. Three sets of color values come from published palettes:
 
 | Source | License | Used for |
 |---|---|---|
+| Material Icons (github.com/google/material-design-icons) | Apache-2.0 (`qml/ui/fonts/LICENSE-MaterialIcons.txt`) | `qml/ui/fonts/MaterialIcons-Regular.ttf`, the icons on the tiles, the buttons and the weather bar. |
 | Nord (nordtheme.com) | MIT | The color values in `qml/dashboards/nord/Dashboard.qml`. |
 | Gruvbox (github.com/morhetz/gruvbox) | MIT | The color values in `qml/dashboards/gruvbox/Dashboard.qml`. |
 | Tailwind CSS (tailwindcss.com) | MIT | The six accent choices (the first is the default) and the two colors of the plain background in `qml/dashboards/glass/Dashboard.qml`, and the same values where other files repeat them. |

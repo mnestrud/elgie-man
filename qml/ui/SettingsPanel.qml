@@ -1,32 +1,39 @@
-// The launcher's settings: a panel that drops in from the top with one tab per
-// section. sections = [{title, items: [{label, hint, value, on, swatch, run}]}].
-// Left/Right change the tab, Up/Down the setting, OK calls the setting's run().
-// With the pointer: a click on a tab or a setting does the same, a click below the
-// panel closes it.
+// The launcher's settings: a page with the sections down the left and the settings of
+// the chosen one on the right. sections = [{title, items: [{label, hint, value, on, swatch, run}]}].
+// Left/Right change the section, Up/Down the setting, OK calls the setting's run().
+// With the pointer: a click on a section or a setting does the same.
 import QtQuick 2.7
 
 FocusScope {
     id: panel
-    property Item backdrop
-    property url blurSource
     property color accent: "#7dd3fc"
     property color ink: "white"
-    property color panelColor: "#0b1220"    // the panel itself, and text on the accent color
+    property color panelColor: "#0b1220"    // the page, and text on the accent color
+    property color glass: "white"
     property var sections: []
     property int tab: 0
     property bool shown: false
     property Item returnFocus
     readonly property var items: sections.length ? sections[Math.min(tab, sections.length - 1)].items : []
+    readonly property var currentItem: items.length ? items[Math.max(0, Math.min(list.currentIndex, items.length - 1))] : null
 
     anchors.fill: parent
     z: 40
-    visible: shown || card.y > -card.height
+    opacity: shown ? 1 : 0
+    visible: opacity > 0
+    Behavior on opacity { NumberAnimation { duration: 200 } }
 
     function open(back) {
         returnFocus = back || null;
         wanted = 0; tab = 0; shown = true;
         list.currentIndex = 0; list.forceActiveFocus();
+        armed = false; arm.restart();
     }
+    // OK counts only after the key that opened the page has been let go, so a held OK
+    // on the Settings button does not run the first setting with its repeats.
+    property bool armed: false
+    Timer { id: arm; interval: 700; onTriggered: panel.armed = true }
+    function okPressed(event) { event.accepted = true; if (armed && !event.isAutoRepeat) run(); }
     function close() {
         shown = false;
         if (returnFocus) returnFocus.forceActiveFocus();
@@ -35,6 +42,11 @@ FocusScope {
         if (t < 0 || t >= sections.length || t === tab) return;
         wanted = 0; tab = t; list.currentIndex = 0;
     }
+    function run() {
+        var it = items[list.currentIndex];
+        if (it && it.run) it.run();
+    }
+    function tint(a) { return Qt.rgba(glass.r, glass.g, glass.b, a); }
 
     // The list resets its position when a setting changes; keep the user's place.
     property int wanted: 0
@@ -47,116 +59,110 @@ FocusScope {
         });
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: "black"
-        opacity: panel.shown ? 0.45 : 0
-        Behavior on opacity { NumberAnimation { duration: 260 } }
+    // The dashboard fades its own bands out while the page is open, so the page sits on the picture alone.
+    Rectangle { anchors.fill: parent; color: Qt.rgba(panel.panelColor.r, panel.panelColor.g, panel.panelColor.b, 0.82) }
+    MouseArea { anchors.fill: parent; hoverEnabled: true; onWheel: wheel.accepted = true }
+
+    Text {
+        id: head
+        x: 96; y: 52
+        text: "Settings"; color: panel.ink
+        font.pixelSize: 44; font.weight: Font.Bold
     }
-    MouseArea { anchors.fill: parent; enabled: panel.shown; hoverEnabled: true; onClicked: panel.close(); onWheel: wheel.accepted = true }
 
-    GlassCard {
-        id: card
-        backdrop: panel.backdrop; blurSource: panel.blurSource
-        width: parent.width; height: 740
-        y: panel.shown ? 0 : -height
-        Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+    Column {
+        id: tabs
+        x: 96; y: 140
+        width: 352
+        spacing: 10
+        Repeater {
+            model: panel.sections
+            Rectangle {
+                width: tabs.width; height: 64; radius: 32
+                color: index === panel.tab ? panel.accent : panel.tint(0.08)
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Text {
+                    x: 28; anchors.verticalCenter: parent.verticalCenter
+                    text: modelData.title; font.pixelSize: 26
+                    font.weight: index === panel.tab ? Font.DemiBold : Font.Normal
+                    color: index === panel.tab ? panel.panelColor : panel.ink
+                }
+                MouseArea { anchors.fill: parent; onClicked: panel.setTab(index) }
+            }
+        }
+    }
 
-        Rectangle { anchors.fill: parent; anchors.margins: -18; color: Qt.rgba(panel.panelColor.r, panel.panelColor.g, panel.panelColor.b, panel.blurSource == "" ? 0.96 : 0.72) }
-        Rectangle { anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: -18 } height: 4; color: panel.accent }
-        MouseArea { anchors.fill: parent; anchors.margins: -18 }
+    ListView {
+        id: list
+        x: 496; y: 140
+        width: 1824 - x
+        height: Math.min(contentHeight, 764)
+        model: panel.items
+        spacing: 8
+        clip: true
+        focus: true
+        interactive: false
+        keyNavigationEnabled: true
+        highlightMoveDuration: 0
+        onCurrentIndexChanged: if (!panel.restoring) panel.wanted = currentIndex
 
-        Text { id: head; x: 78; y: 20; text: "Launcher settings"; color: panel.ink; font.pixelSize: 34; font.weight: Font.DemiBold }
-
-        Row {
-            id: tabs
-            x: 78
-            anchors { top: head.bottom; topMargin: 18 }
-            spacing: 12
-            Repeater {
-                model: panel.sections
+        delegate: Rectangle {
+            width: list.width; height: 80; radius: 16
+            color: ListView.isCurrentItem ? panel.tint(0.2) : panel.tint(0.08)
+            border.width: ListView.isCurrentItem ? 3 : 0
+            border.color: panel.accent
+            Behavior on color { ColorAnimation { duration: 120 } }
+            Text {
+                anchors { left: parent.left; leftMargin: 28; right: value.left; rightMargin: 24; verticalCenter: parent.verticalCenter }
+                text: modelData.label; color: panel.ink; font.pixelSize: 27; elide: Text.ElideRight
+            }
+            Row {
+                id: value
+                anchors { right: parent.right; rightMargin: 28; verticalCenter: parent.verticalCenter }
+                spacing: 14
                 Rectangle {
-                    width: tabLabel.implicitWidth + 56; height: 56
-                    color: index === panel.tab ? panel.accent : "#22ffffff"
-                    Text { id: tabLabel; anchors.centerIn: parent; text: modelData.title; font.pixelSize: 26
-                           color: index === panel.tab ? panel.panelColor : panel.ink }
-                    MouseArea { anchors.fill: parent; onClicked: panel.setTab(index) }
-                }
-            }
-        }
-
-        ListView {
-            id: list
-            anchors { top: tabs.bottom; topMargin: 22; left: parent.left; right: parent.right; leftMargin: 78; rightMargin: 78
-                      bottom: keys.top; bottomMargin: 16 }
-            model: panel.items
-            spacing: 8
-            clip: true
-            focus: true
-            interactive: false
-            keyNavigationEnabled: true
-            highlightMoveDuration: 0
-            onCurrentIndexChanged: if (!panel.restoring) panel.wanted = currentIndex
-
-            delegate: Rectangle {
-                width: list.width; height: 84
-                color: ListView.isCurrentItem ? "#38ffffff" : "#14ffffff"
-                border.width: ListView.isCurrentItem ? 2 : 0
-                border.color: panel.accent
-                Text {
-                    x: 28; width: 440
+                    visible: !!modelData.swatch
+                    width: 30; height: 30; radius: 15
                     anchors.verticalCenter: parent.verticalCenter
-                    text: modelData.label; color: panel.ink; font.pixelSize: 28; elide: Text.ElideRight
+                    color: modelData.swatch || "transparent"
+                    border.width: 1; border.color: panel.tint(0.4)
                 }
                 Text {
-                    anchors { left: parent.left; leftMargin: 496; right: value.left; rightMargin: 28; verticalCenter: parent.verticalCenter }
-                    text: modelData.hint || ""; color: panel.ink; opacity: 0.75; font.pixelSize: 22
-                    wrapMode: Text.WordWrap; maximumLineCount: 2; elide: Text.ElideRight
-                }
-                Row {
-                    id: value
-                    anchors { right: parent.right; rightMargin: 28; verticalCenter: parent.verticalCenter }
-                    spacing: 14
-                    Rectangle {
-                        visible: !!modelData.swatch
-                        width: 32; height: 32; radius: 16
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: modelData.swatch || "transparent"
-                    }
-                    Text {
-                        width: Math.max(implicitWidth, 150)
-                        horizontalAlignment: Text.AlignRight
-                        text: modelData.value || ""; font.pixelSize: 26
-                        font.weight: modelData.on === true ? Font.DemiBold : Font.Normal
-                        color: modelData.on === true ? panel.accent : panel.ink
-                        opacity: modelData.on === false ? 0.6 : 1
-                    }
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onPositionChanged: list.currentIndex = index
-                    onClicked: { list.currentIndex = index; panel.run(); }
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: modelData.value || ""; font.pixelSize: 25
+                    font.weight: modelData.on === true ? Font.DemiBold : Font.Normal
+                    color: modelData.on === true ? panel.accent : panel.ink
+                    opacity: modelData.on === false ? 0.55 : 0.9
                 }
             }
-
-            Keys.onLeftPressed: panel.setTab(panel.tab - 1)
-            Keys.onRightPressed: panel.setTab(panel.tab + 1)
-            Keys.onReturnPressed: panel.run()
-            Keys.onEnterPressed: panel.run()
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onPositionChanged: list.currentIndex = index
+                onClicked: { list.currentIndex = index; panel.run(); }
+            }
         }
 
-        Text {
-            id: keys
-            x: 78
-            anchors { bottom: parent.bottom; bottomMargin: 6 }
-            text: "Left / Right: section    Up / Down: setting    OK: change    Back: close"
-            color: panel.ink; opacity: 0.6; font.pixelSize: 20
-        }
+        Keys.onLeftPressed: panel.setTab(panel.tab - 1)
+        Keys.onRightPressed: panel.setTab(panel.tab + 1)
+        Keys.onReturnPressed: panel.okPressed(event)
+        Keys.onEnterPressed: panel.okPressed(event)
+        Keys.onReleased: if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { panel.armed = true; event.accepted = true; }
     }
 
-    function run() {
-        var it = items[list.currentIndex];
-        if (it && it.run) it.run();
+    // What the chosen setting does.
+    Text {
+        id: hint
+        x: list.x + 28; y: list.y + list.height + 20
+        width: list.width - 56
+        text: panel.currentItem && panel.currentItem.hint ? panel.currentItem.hint : ""
+        color: panel.ink; opacity: 0.65; font.pixelSize: 22
+        wrapMode: Text.WordWrap; maximumLineCount: 2; elide: Text.ElideRight
+    }
+
+    HintBar {
+        anchors { right: parent.right; rightMargin: 96; bottom: parent.bottom; bottomMargin: 40 }
+        ink: panel.ink; glass: panel.glass
+        hints: [["Left / Right", "Section"], ["Up / Down", "Setting"], ["OK", "Change"], ["Back", "Close"]]
     }
 }

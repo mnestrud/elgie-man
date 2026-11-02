@@ -21,7 +21,7 @@ Both keep Home's app id, so the Home key still opens it. `docs/contract-cx.md` a
 - **CX, with `pauseUnderHome` on:** Home takes over the screen and the app under it goes to the background, where LG's Home sat on top of it. Back then reopens that app, or the last input if the app has closed. Some apps reload when reopened. The example config turns this off.
 - **CX, at power-on:** if Home Auto Launch is on in the TV's settings, the launcher stays on screen until dismissed. LG's Home hid itself after a few seconds.
 - **C5:** the Menu key opens the launcher in edit mode.
-- **Not there:** ads, promotions, the hero banner, recommendation shelves, sports alerts, search, install progress, the account label, the quick guide, music and weather.
+- **Not there:** ads, promotions, the hero banner, recommendation shelves, sports alerts, search, install progress, the account label, the quick guide and music. Weather is there only if you point it at a Home Assistant weather entity (`weather` in `config.json`).
 
 ## Left idle
 
@@ -33,12 +33,15 @@ LG's Home was not watched for comparison.
 
 ## What you get
 
-- **Rows:** apps in the order the TV reports them, open apps, inputs, and a TV row (LG's settings, Free up memory, Edit, Launcher settings).
+- **A bar at the top** with the clock and, from Home Assistant, the weather now and the next three days (high, low, chance of rain).
+- **Rows:** apps in the order the TV reports them, two rows high so fewer need scrolling to, with a clock badge on each app that is open; a System apps band under them for the apps you move there, which folds away to its name (OK on the name opens it again); inputs.
+- **Hold OK on an app or input** for its menu: Open, Force stop (while it runs), Hide or Show, Move, and Move to System apps or back to Apps. Inputs get Open and Hide or Show.
+- **A bar at the bottom:** a Free up memory button (a recycling icon and the share of the memory for apps that is free) and a Settings button, centered. The share is LG's own "usable" figure over the most that figure has been on this TV, so it reads near 100% with nothing open; "Reset launcher settings" starts that over.
 - **Arrow keys or the remote's pointer.** The tile under the moving pointer takes the focus, a click is OK, and the wheel steps along a row. A click beside a menu closes it. Moving a tile in edit mode is done with the arrow keys.
-- **Edit mode:** move or hide app tiles; hide inputs.
+- **Edit mode:** every app and input is shown, hidden ones dimmed, and OK opens the same menu; for bringing hidden tiles back.
 - **Free up memory:** closes the apps on a list you choose.
-- **Launcher settings:** a panel on the TV for theme, see-through background, accent color, clock, free-memory figure, the Running row, Pause on Home, the CX background switch and the Free up memory list. A setting changed there is kept on that TV and wins over `config.json` until "Reset launcher settings".
-- **Themes:** the glass look over your own picture, and two color schemes of it (`nord`, `gruvbox`), picked under Launcher settings → Look → Theme. Writing your own is covered in [`qml/dashboards/README.md`](qml/dashboards/README.md).
+- **Settings:** a page on the TV for theme, see-through background, accent color, clock, weather, the System apps band, edit mode, Pause on Home, the CX background switch, the Free up memory list and LG's own settings. A setting changed there is kept on that TV and wins over `config.json` until "Reset launcher settings".
+- **Themes:** the glass look over your own picture, and two color schemes of it (`nord`, `gruvbox`), picked under Settings → Look → Theme. Writing your own is covered in [`qml/dashboards/README.md`](qml/dashboards/README.md).
 - **The launcher makes no sounds of its own.** It does stop app sound in the cases above (Pause on Home, the CX background switch, Free up memory).
 
 ## Requirements
@@ -60,12 +63,12 @@ LG's Home was not watched for comparison.
 
 ```sh
 cp config.example.json config.json        # optional; edit to taste
-scripts/set-background.sh my-picture.jpg  # optional; makes backgrounds/bg.jpg and bg-blur.jpg
+scripts/set-background.sh my-picture.jpg  # optional; makes backgrounds/bg.jpg
 scripts/deploy.sh <tv-ip>
 ```
 
 - **What it does:** copies the launcher to `/var/lib/elgie-man`, installs the boot hook for that TV, and runs it. The hook ends the running Home; the TV starts it again a few seconds later with the launcher. Then press Home.
-- **Check it worked:** `deploy.sh` stops with an error if the TV could not download or unpack the package, but it does not wait for the launcher to start. Look for `launcher started` in `/tmp/elgie-man.log` on the TV about a minute later.
+- **Check it worked:** `deploy.sh` stops with an error if the TV could not download or unpack the package, but it does not wait for the launcher to start. Its last lines say whether Home's `qml` folder now holds the new files (`mounted: new files`); look for `launcher started` in `/tmp/elgie-man.log` on the TV about a minute later.
 - **Config:** a local `config.json` replaces the one on the TV at every deploy. With none, the TV gets `config.example.json` on first install, which differs from the defaults (see the table below).
 - **Background:** without `set-background.sh` there is no picture and glass shows a plain gradient.
 - **Update:** run `deploy.sh` again.
@@ -135,6 +138,8 @@ scripts/uninstall.sh <tv-ip>
 
 **Tested on the CX only:** restoring the launcher from a snapshot (the C5 does not use one).
 
+**The current look** (the two app rows, the bars at the top and bottom, the weather, the settings page, edit mode and its menu) was checked on the CX and the C5 once each, with the weather coming from Home Assistant, and with `lab/preview.sh` on a PC. Moving a tile across a column (two reorder steps) was tried on the PC only. The hold-OK menu (with an injected key held 0.9 s and 2 s), moving an app to System apps and back, and folding and unfolding the band were checked on both once. With the Magic Remote's pointer showing, a held OK is a held click; the tile under the pointer ignores the pointer's movement while the button is down, so the menu keeps the focus (reported once, fixed, not re-tried by hand).
+
 **Pointer:** tried by hand with the remote on the CX and the C5, and reported working on both. Hover, click, wheel and the menus were not checked one by one.
 
 **Not tested:**
@@ -144,6 +149,8 @@ scripts/uninstall.sh <tv-ip>
 - any TV other than those two, and any other firmware.
 
 **Known problems:**
+
+- **Seen twice on the CX (2026-11-02):** after `deploy.sh` ended Home, the TV kept trying to relaunch it every few seconds and it never came up; the hook's failsafe reverted to LG's Home after 45 s, and `deploy.sh` run again then worked. Both times the launcher it replaced had been up for under five minutes; deploys over a launcher up for ten minutes or more went through. Cause unknown.
 
 - **Seen once on the C5:** after an install made while Home was on screen, Home came up black and took no keys until its process was ended. Not reproduced.
 - **Never run `ls-monitor` on a webOS 25 TV.** It made the C5 record a fault and restart (`docs/contract-c5.md`). The launcher does not use it.
@@ -160,8 +167,12 @@ scripts/uninstall.sh <tv-ip>
 | `pauseTwiceApps` | `["com.cbs-all-access.webapp.prod"]` | | App ids that get Pause twice: the first only brings up their player controls. |
 | `pauseUnderHome` | `true` | `false` | CX only. `true`: Home takes over the screen and the app goes to the background. `false`: Home sits on top and the app stays in front. |
 | `freeMemoryApps` | `[]` | ten app ids | App ids closed by Free up memory. |
+| `systemApps` | `[]` | seven launch point ids (LG's browser, gallery, music, photos, sports, Home Dashboard, Alexa) | Launch point ids (`<app id>_default`) shown in the System apps band instead of Apps. Changed on the TV with the hold menu. |
+| `systemAppsCollapsed` | `false` | | Fold the System apps band to its name. Changed on the TV with OK on the name, or under Settings → Rows. |
+| `memoryPeakMb` | | | Kept by the launcher itself: the most memory LG's memory manager has reported as usable for apps, the 100% of the Free up memory button. |
 | `settingsId` | `com.palm.app.settings` | | App id opened by the Settings tile. |
-| `showClock`, `showMemory`, `showRunning` | `true` | | Show the clock, the free-memory figure, the row of open apps. |
+| `showClock`, `showWeather` | `true` | | Show the clock, the weather. |
+| `weather` | none | | `{"url": "http://<home-assistant-ip>", "token": "<long-lived access token>", "entity": "weather.<name>"}`. The launcher reads the entity's state and its daily forecast over Home Assistant's REST API when Home is shown (at most every 10 minutes) and every 15 minutes while it stays up. An IP address, not a name: the TVs do not resolve hostnames. The token is in `config.json` on the TV, readable by root only. |
 | `sendspin` | `false` | | Send TV sound to Music Assistant. Read by elgie-sendspin (separate repo), which starts or stops its Sendspin source to match; does nothing without it. |
 | `dashboard` | `glass` | | The theme the TV starts with. A theme picked on the TV wins. |
 | `demo` | `false` | | Stand-in app names and no app icons, for screenshots. |
@@ -178,7 +189,7 @@ scripts/uninstall.sh <tv-ip>
 | `init.d/` | The boot hooks, one per TV. |
 | `scripts/` | Install, uninstall, background. |
 | `docs/` | What each TV expects of Home; screenshots. |
-| `lab/` | Tools for testing on a TV: screenshots, key presses, state snapshots. |
+| `lab/` | Tools for testing on a TV: screenshots, key presses, state snapshots. `lab/preview.sh` runs the launcher on the PC with made-up apps and takes screenshots. |
 
 On the TV: files in `/var/lib/elgie-man`, the hook in `/var/lib/webosbrew/init.d/05elgieman`, the hook's log in `/tmp/elgie-man.log`.
 

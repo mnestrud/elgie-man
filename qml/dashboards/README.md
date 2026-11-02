@@ -4,14 +4,14 @@ A dashboard is what the TV shows when Home is pressed. Each one is a folder here
 
 | Folder | What it is |
 |---|---|
-| `glass/` | The launcher: tile rows for apps, running apps, inputs and TV actions, edit mode, settings panel. |
+| `glass/` | The launcher: a bar with the clock and the weather, two rows of app tiles with a badge on the open ones, a System apps band that folds away, the inputs, a bottom bar with Free up memory and Settings, a menu on a held OK, edit mode, the settings page. |
 | `nord/` | `glass` in the Nord colors: cool blue-greys, frost accents. A few lines that set a palette. |
 | `gruvbox/` | `glass` in the Gruvbox dark colors: warm browns, cream text, bright accents. |
 | `starter/` | The time and one row of app names. About 50 lines; copy it to begin. |
 
 ## What they look like
 
-Taken on a webOS 25 TV with `"demo": true` in `config.json`, which swaps the app names for stand-ins and leaves out the icons in the Apps row and on the Settings tile.
+Made on a PC with `lab/preview.sh`, which runs the launcher with made-up apps and inputs (`lab/preview/Luna.qml`). On a TV the font is LG's and the icons are the apps' own.
 
 | | |
 |---|---|
@@ -21,12 +21,12 @@ Taken on a webOS 25 TV with `"demo": true` in `config.json`, which swaps the app
 ## Themes on the TV
 
 - **All installed:** `deploy.sh` sends every dashboard here to the TV (not `starter/`).
-- **Picking one:** Launcher settings → Look → Theme. The choice is kept on that TV.
+- **Picking one:** Settings → Look → Theme. The choice is kept on that TV.
 - **Start-up:** the TV loads the dashboard chosen at deploy time, then swaps to the picked one. A picked dashboard that does not load gives way to the deployed one.
 
 ## A color scheme of glass
 
-Copy `nord/` and change the values. `palette` has `top` and `bottom` (the background, in place of the picture), `panel` (the settings panel and text on the accent color), `ink` (text), `glass` (the tint of the tiles) and `accents` (the choices under Accent color; the first is the default).
+Copy `nord/` and change the values. `palette` has `top` and `bottom` (the background, in place of the picture), `panel` (the settings panel and text on the accent color), `ink` (text), `glass` (the tint of borders and pills), `surface` (the tiles) and `accents` (the choices under Accent color; the first is the default).
 
 ## One dashboard, both TV families
 
@@ -39,8 +39,8 @@ Copy `nord/` and change the values. `palette` has `top` and `bottom` (the backgr
 1. Copy `starter/` to `qml/dashboards/<your-name>/`.
 2. Edit `Dashboard.qml`. Add more `.qml` files or images to the folder as needed; the whole folder is sent to the TV.
 3. Give it an entry that calls `tv.pickTheme()`, so people can leave it for another theme.
-4. Install: `scripts/deploy.sh <tv-ip>`, then pick it on the TV under Launcher settings → Look → Theme. `"dashboard": "<your-name>"` in `config.json` makes it the one the TV starts with; `DASHBOARD=<your-name>` does the same when `config.json` has no `dashboard` key. A theme already picked on the TV still wins.
-5. Add a screenshot to `docs/dashboards/` taken with `"demo": true`, and a row to the tables above.
+4. Install: `scripts/deploy.sh <tv-ip>`, then pick it on the TV under Settings → Look → Theme. `"dashboard": "<your-name>"` in `config.json` makes it the one the TV starts with; `DASHBOARD=<your-name>` does the same when `config.json` has no `dashboard` key. A theme already picked on the TV still wins.
+5. Add a screenshot to `docs/dashboards/` (`lab/preview.sh <scenario> <your-name>` makes one on the PC), and a row to the tables above.
 
 ## What a dashboard is
 
@@ -66,7 +66,7 @@ Copy `nord/` and change the values. `palette` has `top` and `bottom` (the backgr
 | `tv.config` | `config.json` with the settings changed on this TV on top. Read your own keys from it. |
 | `tv.flag(key)` | `true` unless `config[key]` is `false`. |
 | `tv.store.set(key, value)` | Saves a setting on this TV; `tv.config` updates. `tv.store.reset()` clears them all. |
-| `tv.dataDir` | `file:///var/lib/elgie-man/`, where `config.json`, `bg.jpg` and `bg-blur.jpg` are. |
+| `tv.dataDir` | `file:///var/lib/elgie-man/`, where `config.json` and `bg.jpg` are. |
 | `tv.launch(id, params)` | Opens an app or input. |
 | `tv.hide()` | Hides Home. |
 | `tv.pickTheme()` | Opens the list of installed dashboards over yours. `tv.theme` is the name of the one in use, `tv.themes` the list. |
@@ -74,11 +74,16 @@ Copy `nord/` and change the values. `palette` has `top` and `bottom` (the backgr
 | `tv.inputs.items` | `{label, id, connected, active}` for each input. |
 | `tv.running.items` | `{id, title, icon, color}` for each open app. |
 | `tv.foreground` | `appId` of the app in front, `lastApp`, `lastInput`, `isInput(id)`. |
-| `tv.memory` | `totalMb`, `availableMb`, `freeRatio`; refreshed every 5 s while shown. |
+| `tv.memory` | `usableMb` (LG's memory manager: what apps can have now), `poolMb` (the most usable this TV has reported, kept as `memoryPeakMb` in the store), `usableRatio`; also `totalMb`, `availableMb`, `freeRatio` from /proc/meminfo. Refreshed every 5 s while shown. |
+| `tv.weather` | From Home Assistant when `config.weather` is set: `configured`, `ready`, `condition`, `temperature`, `unit`, `apparent`, `humidity`, `windSpeed`, `windUnit`, and `forecast` (`[{day, condition, high, low, chance, amount}]`, today first, three days). Refreshed when Home is shown and every 15 minutes while it is. |
 | `tv.bus.call(service, method, params, cb)` | Any other luna call, made as Home. `cb(ok, response)`. With `subscribe: true` it returns a handle for `tv.bus.cancel(handle)`. |
 | `tv.overlayOnly` | `true` on webOS 25, where Home always sits on top of the app in front. |
 
-The glass parts in `qml/ui/` (`GlassTile`, `GlassCard`, `TileRow`, `FocusRing`, `Sheet`, `Toast`, `SettingsPanel`) can be used with `import "../../ui"`.
+The glass parts in `qml/ui/` can be used with `import "../../ui"`: `TileRow` (a captioned band of `Tile`s, one or two rows high), `Card`, `Pill`, `HintBar`, `Icon` and `WeatherIcon` (Material Icons, from the font in `qml/ui/fonts/`), `Sheet`, `Toast` and `SettingsPanel`.
+
+## Trying it on the PC
+
+`lab/preview.sh <scenario.json> [dashboard]` runs the frame and a dashboard under `qmltestrunner` with made-up apps, inputs and running apps, plays the scenario's key presses and saves screenshots. The script's header says what to install and what a scenario looks like. It uses the repo's `config.json` and `backgrounds/`, so a weather entry is fetched for real.
 
 ## Rules
 

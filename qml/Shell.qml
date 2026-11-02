@@ -27,12 +27,18 @@ FocusScope {
     property alias running: running
     property alias foreground: foreground
     property alias memory: memory
+    property alias weather: weather
     Luna { id: luna }
     Apps { id: apps; luna: luna; demo: tv.config.demo === true; onHiddenEdited: if (tv.store) tv.store.hidden = list }
     Inputs { id: inputs; luna: luna }
     Running { id: running; luna: luna; apps: apps }
     Foreground { id: foreground; luna: luna }
-    Memory { id: memory }
+    Memory {
+        id: memory; luna: luna
+        storedPeakMb: tv.config.memoryPeakMb || 0
+        onPeakMbChanged: if (store && peakMb > storedPeakMb) store.set("memoryPeakMb", peakMb)
+    }
+    Weather { id: weather; config: tv.config.weather || ({}); shown: tv.shown }
 
     function launch(id, params) { luna.launch(id, params); }
     function hide() { requestHide(); }
@@ -108,7 +114,7 @@ FocusScope {
     function activate(params) {
         shown = true;
         now = new Date();
-        running.refresh(); memory.read();
+        running.refresh(); memory.read(); weather.refreshIfStale();
         ask("activate", params || {});
     }
     function deactivate() { shown = false; picker.visible = false; ask("deactivate"); }
@@ -127,6 +133,7 @@ FocusScope {
         sourceComponent: Item {
             Timer { interval: 1000; repeat: true; running: tv.shown; triggeredOnStart: true; onTriggered: tv.now = new Date() }
             Timer { interval: 5000; repeat: true; running: tv.shown; triggeredOnStart: true; onTriggered: memory.read() }
+            Timer { interval: 15 * 60000; repeat: true; running: tv.shown; onTriggered: weather.refresh() }
         }
     }
 
@@ -168,31 +175,32 @@ FocusScope {
         MouseArea { anchors.fill: parent; hoverEnabled: true; onClicked: tv.closePicker(); onWheel: wheel.accepted = true }
         Rectangle {
             anchors.centerIn: parent
-            width: 620; height: 170 + Math.min(tv.themes.length, 8) * 76
-            color: "#0f172a"; border.width: 2; border.color: "#7dd3fc"
+            width: 640; height: 150 + Math.min(tv.themes.length, 8) * 80
+            radius: 28
+            color: "#f50f172a"; border.width: 1; border.color: "#33ffffff"
             MouseArea { anchors.fill: parent }
-            Text { x: 40; y: 28; color: "white"; font.pixelSize: 36; text: "Theme" }
-            Text { x: 40; y: parent.height - 50; color: "white"; opacity: 0.6; font.pixelSize: 20; text: "OK: use this theme    Back: close" }
+            Text { x: 32; y: 32; color: "white"; font.pixelSize: 30; font.weight: Font.DemiBold; text: "Theme" }
             ListView {
                 id: pickList
-                x: 40; y: 92; width: parent.width - 80; height: Math.min(tv.themes.length, 8) * 76
+                x: 32; y: 92; width: parent.width - 64; height: Math.min(tv.themes.length, 8) * 80
                 spacing: 8
                 clip: true
                 focus: true
                 model: tv.themes
                 highlightMoveDuration: 0
                 delegate: Rectangle {
-                    width: pickList.width; height: 68
-                    color: ListView.isCurrentItem ? "#7dd3fc" : "#22ffffff"
+                    width: pickList.width; height: 72; radius: 36
+                    color: ListView.isCurrentItem ? "#7dd3fc" : "#14ffffff"
                     Text {
-                        x: 24; anchors.verticalCenter: parent.verticalCenter
-                        color: parent.ListView.isCurrentItem ? "#0b1220" : "white"; font.pixelSize: 30
+                        x: 32; anchors.verticalCenter: parent.verticalCenter
+                        color: parent.ListView.isCurrentItem ? "#0b1220" : "white"; font.pixelSize: 26
+                        font.weight: parent.ListView.isCurrentItem ? Font.DemiBold : Font.Normal
                         text: tv.themeTitle(modelData)
                     }
                     Text {
-                        anchors { right: parent.right; rightMargin: 24; verticalCenter: parent.verticalCenter }
+                        anchors { right: parent.right; rightMargin: 32; verticalCenter: parent.verticalCenter }
                         visible: modelData === tv.theme
-                        color: parent.ListView.isCurrentItem ? "#0b1220" : "white"; font.pixelSize: 22
+                        color: parent.ListView.isCurrentItem ? "#0b1220" : "white"; opacity: 0.8; font.pixelSize: 22
                         text: "In use"
                     }
                     MouseArea {
@@ -202,9 +210,10 @@ FocusScope {
                         onClicked: tv.chooseTheme(modelData)
                     }
                 }
-                Keys.onReturnPressed: tv.chooseTheme(tv.themes[currentIndex])
-                Keys.onEnterPressed: tv.chooseTheme(tv.themes[currentIndex])
+                Keys.onReturnPressed: if (!event.isAutoRepeat) tv.chooseTheme(tv.themes[currentIndex])
+                Keys.onEnterPressed: if (!event.isAutoRepeat) tv.chooseTheme(tv.themes[currentIndex])
             }
+            Text { x: 32; y: parent.height - 44; color: "white"; opacity: 0.6; font.pixelSize: 20; text: "OK: use this theme    Back: close" }
         }
     }
 
