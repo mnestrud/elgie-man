@@ -162,6 +162,7 @@ scripts/uninstall.sh <tv-ip>
 | `freeMemoryApps` | `[]` | ten app ids | App ids closed by Free up memory. |
 | `settingsId` | `com.palm.app.settings` | | App id opened by the Settings tile. |
 | `showClock`, `showMemory`, `showRunning` | `true` | | Show the clock, the free-memory figure, the row of open apps. |
+| `sendspin` | `false` | | Send TV sound to Music Assistant. Read by elgie-sendspin (separate repo), which starts or stops its Sendspin source to match; does nothing without it. |
 | `dashboard` | `glass` | | The theme the TV starts with. A theme picked on the TV wins. |
 | `demo` | `false` | | Stand-in app names and no app icons, for screenshots. |
 | `debug` | `false` | | C5 only: keep the host's last 60 log lines in `debugLog` in `/var/lib/elgie-man/settings.conf`, with a line for each key press that reaches the host (not the arrows and OK that a tile or menu handles). Not re-tested since it was made a switch. |

@@ -202,8 +202,9 @@ FocusScope {
 
     readonly property var opacitySteps: [1, 0.95, 0.9, 0.85, 0.8, 0.7, 0.6, 0.5]
 
-    function toggleItem(label, hint, key) {
-        var on = flag(key);
+    // offByDefault: a missing key counts as off instead.
+    function toggleItem(label, hint, key, offByDefault) {
+        var on = offByDefault ? config[key] === true : flag(key);
         return {label: label, hint: hint, value: on ? "On" : "Off", on: on, run: function () { home.set(key, !on); }};
     }
     function opacityItem() {
@@ -273,6 +274,7 @@ FocusScope {
             ]},
             {title: "Free memory", items: closeListItems()},
             {title: "TV", items: [
+                toggleItem("Send TV sound to Music Assistant", "Streams what the TV plays to Music Assistant as a live input; the TV's own speakers and ARC are unchanged. Needs elgie-sendspin on this TV.", "sendspin", true),
                 {label: "TV settings", hint: "Opens LG's own settings for picture, sound and network.", value: "Open",
                  run: function () { luna.launch(home.settingsId(), {}); }},
                 {label: "Reset launcher settings", hint: "Puts every setting in this menu back to the value in config.json.", value: "Reset",
