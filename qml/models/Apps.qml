@@ -74,10 +74,12 @@ Item {
 
     // Moves a tile one step left (-1) or right (+1) past its neighbour in the list
     // on screen (all tiles while editing, shown tiles otherwise).
-    function step(lpId, dir, onScreen, done) {
+    // Moves lpId delta places along onScreen (the tiles the user sees, in order), to the
+    // TV's position of the tile now at that place.
+    function step(lpId, delta, onScreen, done) {
         var vis = onScreen, vi = -1;
         for (var i = 0; i < vis.length; i++) if (vis[i].launchPointId === lpId) vi = i;
-        var ti = vi + dir;
+        var ti = vi + delta;
         if (vi < 0 || ti < 0 || ti >= vis.length) { if (done) done(false); return; }
         var target = indexOfLp(vis[ti].launchPointId);
         luna.call("com.webos.applicationManager", "moveLaunchPoint",

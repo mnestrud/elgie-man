@@ -168,22 +168,15 @@ FocusScope {
         }
     }
 
-    // A move of more than one place is that many single steps, so the TV's own
-    // reorder call is used as it was tested. The band's list is read again before each
-    // step, since every step changes the order; the focus then follows the moved tile.
+    // The lifted tile takes the place of the tile delta positions along its band (a row
+    // up or down is a whole row of positions); the focus then follows the moved tile.
     property var grabbedRow: null            // the band the lifted tile is in
     function moveGrabbed(delta) {
         var band = grabbedRow || appsRow, system = band === systemRow, id = grabbed;
-        var dir = delta < 0 ? -1 : 1, left = Math.abs(delta);
-        function place() {
+        apps.step(id, delta, bandLps(system), function (ok) {
             var lps = bandLps(system);
             for (var i = 0; i < lps.length; i++) if (lps[i].launchPointId === id) { band.setIndex(i); return; }
-        }
-        function one() {
-            if (!left--) { place(); return; }
-            apps.step(id, dir, bandLps(system), function (ok) { if (ok) one(); else place(); });
-        }
-        one();
+        });
     }
 
     function freeMemory() {
@@ -474,7 +467,6 @@ FocusScope {
                 id: appsRow
                 onActiveFocusChanged: if (activeFocus) home.reveal(appsRow)
                 label: home.editMode ? "Apps  ·  editing" : "Apps"
-                rows: 2
                 entries: home.appEntries()
                 accent: home.accent; ink: home.ink; glass: home.glass; surface: home.surface
                 lifted: home.grabbed !== "" && home.grabbedRow !== systemRow

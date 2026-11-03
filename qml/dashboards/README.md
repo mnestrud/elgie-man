@@ -4,7 +4,7 @@ A dashboard is what the TV shows when Home is pressed. Each one is a folder here
 
 | Folder | What it is |
 |---|---|
-| `glass/` | The launcher: a bar with the clock and the weather, two rows of app tiles with a badge on the open ones, a System apps band that folds away, the inputs, a bottom bar with Free up memory and Settings, a menu on a held OK, edit mode, the settings page. |
+| `glass/` | The launcher: a bar with the clock and the weather, app tiles flowing across the width with a badge on the open ones, a System apps band that folds away, the inputs, a bottom bar with Free up memory and Settings, a menu on a held OK, edit mode, the settings page. |
 | `nord/` | `glass` in the Nord colors: cool blue-greys, frost accents. A few lines that set a palette. |
 | `gruvbox/` | `glass` in the Gruvbox dark colors: warm browns, cream text, bright accents. |
 | `starter/` | The time and one row of app names. About 50 lines; copy it to begin. |
@@ -79,7 +79,7 @@ Copy `nord/` and change the values. `palette` has `top` and `bottom` (the backgr
 | `tv.bus.call(service, method, params, cb)` | Any other luna call, made as Home. `cb(ok, response)`. With `subscribe: true` it returns a handle for `tv.bus.cancel(handle)`. |
 | `tv.overlayOnly` | `true` on webOS 25, where Home always sits on top of the app in front. |
 
-The glass parts in `qml/ui/` can be used with `import "../../ui"`: `TileRow` (a captioned band of `Tile`s, one or two rows high), `Card`, `Pill`, `HintBar`, `Icon` and `WeatherIcon` (Material Icons, from the font in `qml/ui/fonts/`), `Sheet`, `Toast` and `SettingsPanel`.
+The glass parts in `qml/ui/` can be used with `import "../../ui"`: `TileRow` (a captioned band of `Tile`s that flows across the width into as many rows as needed), `Card`, `Pill`, `HintBar`, `Icon` and `WeatherIcon` (Material Icons, from the font in `qml/ui/fonts/`), `Sheet`, `Toast` and `SettingsPanel`.
 
 ## Trying it on the PC
 

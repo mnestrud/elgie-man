@@ -10,14 +10,14 @@
 - `demo` config key: stand-in app names and no app icons, for screenshots.
 - Pointer support: the tile or menu line under the remote's pointer takes the focus, a click is OK, the wheel steps along a row.
 - C5: Home no longer comes back over the screensaver when the TV relaunches it as the last app.
-- Moving a tile within its band by a column (two single steps) undid itself, since the second step read the order from before the first; the band's list is read again before each step and the focus follows the moved tile.
+- Bands flow like text: tiles fill each row across the width (eight on a 1080p screen), then the next row, as many rows as needed, in place of two fixed rows filled column by column that left the right of the screen empty. Moving a lifted tile is one reorder call for any distance, and the focus follows the moved tile.
 - CX: `deploy.sh` over a running launcher left the old files mounted (the unmount was busy); it now detaches the mount lazily and reports whether the new files are mounted. The hook's failsafe unmounts the same way.
 - CX hook: the start check waits up to 10 s for the ended Home process to be gone before it watches for the new one.
 - The health check baseline is recorded at every install, not only the first.
 - C5: the host keeps its event log in the settings file only with `debug` on; its app status subscription, which never delivered an update, is removed.
 - `deploy.sh` installs only on the tested model and webOS pairs; `FORCE=1` overrides. The boot hooks do nothing on any other webOS version unless the install was forced.
 - New look for the glass theme: rounded square tiles, all on one dark gray, with the app's name underneath, a bar at the top with the clock and the weather, a bottom bar with the remote's keys, a settings page with the sections down the left. The blurred background is no longer used.
-- Apps in two rows, so fewer need scrolling to. In edit mode Up and Down move a tile within its column, Left and Right across.
+- Apps flow across the width into rows, so fewer need scrolling to. A lifted tile moves one place with Left and Right and a row with Up and Down.
 - The TV row is gone: LG's settings and edit mode are on the settings page; Free up memory is a button at the bottom, a recycling icon with the share of the memory for apps that is free, in place of the figure at the top (`showMemory` is no longer read). The share is LG's "usable" figure from `com.webos.memorymanager/getCurrentMemState` over the most it has reported on this TV (`memoryPeakMb` in the store).
 - Weather from Home Assistant in the bar at the top (`weather` in `config.json`): the conditions now and three days of high, low and chance of rain.
 - `lab/preview.sh` runs the launcher on the PC with made-up apps and takes screenshots.

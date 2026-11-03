@@ -34,7 +34,7 @@ LG's Home was not watched for comparison.
 ## What you get
 
 - **A bar at the top** with the clock and, from Home Assistant, the weather now and the next three days (high, low, chance of rain).
-- **Rows:** apps in the order the TV reports them, two rows high so fewer need scrolling to, with a clock badge on each app that is open; a System apps band under them for the apps you move there, which folds away to its name (OK on the name opens it again); inputs.
+- **Rows:** apps in the order the TV reports them, flowing across the width and down as many rows as they need (eight to a row), with a clock badge on each app that is open; a System apps band under them for the apps you move there, which folds away to its name (OK on the name opens it again); inputs.
 - **Hold OK on an app or input** for its menu: Open, Force stop (while it runs), Hide or Show, Move, and Move to System apps or back to Apps. Inputs get Open and Hide or Show.
 - **A bar at the bottom:** a Free up memory button (a recycling icon and the share of the memory for apps that is free) and a Settings button, centered. The share is LG's own "usable" figure over the most that figure has been on this TV, so it reads near 100% with nothing open; "Reset launcher settings" starts that over.
 - **Arrow keys or the remote's pointer.** The tile under the moving pointer takes the focus, a click is OK, and the wheel steps along a row. A click beside a menu closes it. Moving a tile in edit mode is done with the arrow keys.
@@ -138,7 +138,7 @@ scripts/uninstall.sh <tv-ip>
 
 **Tested on the CX only:** restoring the launcher from a snapshot (the C5 does not use one).
 
-**The current look** (the two app rows, the bars at the top and bottom, the weather, the settings page, edit mode and its menu) was checked on the CX and the C5 once each, with the weather coming from Home Assistant, and with `lab/preview.sh` on a PC. Moving a tile across a column (two reorder steps) was tried on the PC only. The hold-OK menu (with an injected key held 0.9 s and 2 s), moving an app to System apps and back, and folding and unfolding the band were checked on both once. With the Magic Remote's pointer showing, a held OK is a held click; the tile under the pointer ignores the pointer's movement while the button is down, so the menu keeps the focus (reported once, fixed, not re-tried by hand).
+**The current look** (the flowing app rows, the bars at the top and bottom, the weather, the settings page, edit mode and its menu) was checked on the CX and the C5 once each, with the weather coming from Home Assistant, and with `lab/preview.sh` on a PC. Moving a tile a row up or down (one reorder call over a whole row) was tried on the PC and the Gym once. The hold-OK menu (with an injected key held 0.9 s and 2 s), moving an app to System apps and back, and folding and unfolding the band were checked on both once. With the Magic Remote's pointer showing, a held OK is a held click; the tile under the pointer ignores the pointer's movement while the button is down, so the menu keeps the focus (reported once, fixed, not re-tried by hand).
 
 **Pointer:** tried by hand with the remote on the CX and the C5, and reported working on both. Hover, click, wheel and the menus were not checked one by one.
 
