@@ -50,6 +50,7 @@ done
 cp -r "qml/dashboards/$DASH" "$STAGE/pkg/qml/dashboards/current"
 echo "{\"default\": \"$DASH\", \"names\": [${NAMES%,}]}" > "$STAGE/pkg/qml/dashboards/list.json"
 cp "qml/hosts/$FAMILY/main.qml" "$STAGE/pkg/qml/main.qml"
+cp tv/headset.sh "$STAGE/pkg/headset.sh"
 # A local config.json always replaces the TV's; otherwise the TV keeps its own
 # (or gets the example on first install).
 if [ -f "$CFG" ]; then cp "$CFG" "$STAGE/pkg/config.json"; touch "$STAGE/pkg/config.force"
@@ -93,6 +94,7 @@ for f in config.json bg.jpg; do [ -f \$D/new/\$f ] && mv \$D/new/\$f \$D/\$f; do
 chmod 600 \$D/config.json
 rm -f \$D/force; [ -f \$D/new/force ] && mv \$D/new/force \$D/force
 rm -rf \$D/qml.old; [ -d \$D/qml ] && mv \$D/qml \$D/qml.old; mv \$D/new/qml \$D/qml
+mv \$D/new/headset.sh \$D/headset.sh; chmod 755 \$D/headset.sh
 cp \$D/new/05elgieman /var/lib/webosbrew/init.d/05elgieman; chmod 755 /var/lib/webosbrew/init.d/05elgieman; rm -rf \$D/new
 echo installed: \$(ls \$D/qml | tr '\n' ' ')"); echo "$OUT" | grep -v ' # '
 echo "$OUT" | grep -q '^installed:' || { echo "not installed: the TV did not report the install as done (download from http://$HOST:$PORT failed?)"; exit 1; }
@@ -102,6 +104,7 @@ echo "$OUT" | grep -q '^installed:' || { echo "not installed: the TV did not rep
 send "D=/var/lib/elgie-man
 HI=\$(luna-send -n 1 -w 5000 luna://com.webos.service.eim/getAllInputStatus '{}' | grep -o '\"appId\"' | wc -l)
 HS=\$(luna-send -n 1 -w 5000 luna://com.webos.service.apiadapter/audio/getSoundOutput '{}' | grep -o '\"soundOutput\":\"[^\"]*\"' | cut -d'\"' -f4)
+HP=\$(sed -n 's/^PREV=//p' \$D/headset.state 2>/dev/null); [ -n \"\$HP\" ] && HS=\$HP    # a USB headset route is on: the output it replaced
 if [ \"\$HI\" -gt 0 ] && [ -n \"\$HS\" ]; then echo INPUTS=\$HI > \$D/health.env; echo SOUND_OUTPUT=\$HS >> \$D/health.env; fi
 cat \$D/health.env"
 

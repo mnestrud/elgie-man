@@ -43,6 +43,7 @@ LG's Home was not watched for comparison.
 - **Settings:** a page on the TV for theme, see-through background, accent color, clock, weather, the System apps band, edit mode, Pause on Home, the CX background switch, the Free up memory list and LG's own settings. A setting changed there is kept on that TV and wins over `config.json` until "Reset launcher settings".
 - **Themes:** the glass look over your own picture, and two color schemes of it (`nord`, `gruvbox`), picked under Settings → Look → Theme. Writing your own is covered in [`qml/dashboards/README.md`](qml/dashboards/README.md).
 - **The launcher makes no sounds of its own.** It does stop app sound in the cases above (Pause on Home, the CX background switch, Free up memory).
+- **Headset** (CX): a button at the bottom that sends the TV's sound to a USB headset plugged into the TV, which webOS 5 cannot do itself. On, it switches Sound Out to Wired Headphones, turns SIMPLINK off (a receiver on HDMI ARC takes the sound back otherwise) and pipes the TV's mix into the headset; the button is tinted while it is on. It goes off from the button, when the headset is switched off (the dongle reports the dropped link on its USB serial port; the sound is back on the receiver about a second later), when the dongle is unplugged, on a resume from standby and at a reboot, and both settings go back. The button follows the TV's Sound Out setting, so it updates by itself. The TV's volume does not apply; the headset's own dial does. Needs the Homebrew Channel (its `exec` service runs the script as root). Switched-off detection is known to work with the Sony INZONE H9 dongle; a dongle without a serial port leaves the other ways.
 
 ## Requirements
 
@@ -101,6 +102,7 @@ Nothing on the TV's read-only system image is written. The rest:
 - **Mount over LG's stored Home snapshot,** so the TV snapshots and restores the launcher instead. LG's copy is not written. The TV's temporary copy of the snapshot in `/tmp` is deleted.
 - **Fallback:** if LG's stored snapshot folder is missing, or `/var/lib/elgie-man/no-snapshot` exists, the hook instead moves `/tmp/criu_enable` aside. That switches snapshot restore off for every app until it is put back.
 - **Settings:** the launcher keeps its per-TV settings as an `[elgieman]` section in Home's own settings file, `/home/root/.config/Unknown Organization/com.webos.app.home.conf`.
+- **Headset button:** while it is on, Sound Out is Wired Headphones and SIMPLINK is off; `/var/lib/elgie-man/headset.state` holds what they were. PulseAudio gets a source on ALSA `hw:0,12` (the TV's mix) and a `parec | pacat` pipe into the USB device, and a listener holds the dongle's serial port (`/dev/ttyACM0`), reading link events; it writes one status request when it starts. Off puts the settings back (SIMPLINK first) and removes all of it. The boot hook runs `headset.sh reset` at a real boot (uptime under 5 minutes) and the launcher runs it when the TV comes back from standby.
 
 **C5**
 
@@ -141,6 +143,8 @@ scripts/uninstall.sh <tv-ip>
 **The current look** (the flowing app rows, the bars at the top and bottom, the weather, the settings page, edit mode and its menu) was checked on the CX and the C5 once each, with the weather coming from Home Assistant, and with `lab/preview.sh` on a PC. Moving a tile a row up or down (one reorder call over a whole row) was tried on the PC and the Gym once. The hold-OK menu (with an injected key held 0.9 s and 2 s), moving an app to System apps and back, and folding and unfolding the band were checked on both once. With the Magic Remote's pointer showing, a held OK is a held click; the tile under the pointer ignores the pointer's movement while the button is down, so the menu keeps the focus (reported once, fixed, not re-tried by hand).
 
 **Pointer:** tried by hand with the remote on the CX and the C5, and reported working on both. Hover, click, wheel and the menus were not checked one by one.
+
+**Headset (2026-11-04, Living Room CX, Sony INZONE H9 dongle):** the whole path was run by hand from a verified idle TV: button on with the headset connected (sound in the headset, nothing from the receiver), headset switched off (one toast, the receiver playing again one second after the dongle reported the drop, SIMPLINK back on). The two mix taps (`hw:0,12` and `hw:1,2`) were recorded together and found sample-identical. Not yet tried: the reset at a real boot and at a resume from standby, the teardown when the dongle is unplugged, the button on the C5, and the headset icon in the GFN app's dev build.
 
 **Not tested:**
 
@@ -187,6 +191,7 @@ scripts/uninstall.sh <tv-ip>
 | `qml/dashboards/` | The themes. |
 | `qml/ui/` | Parts of the glass theme, reusable. |
 | `init.d/` | The boot hooks, one per TV. |
+| `tv/` | Scripts that run on the TV: `headset.sh`, the USB headset route (installed as `/var/lib/elgie-man/headset.sh`). |
 | `scripts/` | Install, uninstall, background. |
 | `docs/` | What each TV expects of Home; screenshots. |
 | `lab/` | Tools for testing on a TV: screenshots, key presses, state snapshots. `lab/preview.sh` runs the launcher on the PC with made-up apps and takes screenshots. |

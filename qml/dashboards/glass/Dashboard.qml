@@ -1,6 +1,6 @@
 // The glass dashboard: a bar with the clock and the weather, two rows of apps, a
 // band of system apps that folds away, the inputs, and a bottom bar with
-// Free up memory and Settings; a menu on a held OK; plus edit mode and the settings page. What the frame gives a dashboard and calls on it is
+// Free up memory, Headset and Settings; a menu on a held OK; plus edit mode and the settings page. What the frame gives a dashboard and calls on it is
 // described in qml/dashboards/README.md.
 import QtQuick 2.7
 import "../../ui"
@@ -17,6 +17,7 @@ FocusScope {
     readonly property var running: tv.running
     readonly property var memory: tv.memory
     readonly property var weather: tv.weather
+    readonly property var headset: tv.headset
     readonly property bool shown: tv.shown
     readonly property bool overlayOnly: tv.overlayOnly
     // Colors. A color variant (qml/dashboards/nord/, gruvbox/) is this dashboard with
@@ -514,20 +515,23 @@ FocusScope {
         }
     }
 
-    // ----- the bar at the bottom, centered: Free up memory (an icon and the free share) and Settings -----
+    // ----- the bar at the bottom, centered: Free up memory (an icon and the free share), Headset (a
+    // switch: the TV's sound to a USB headset, tinted while on) and Settings -----
     FocusScope {
         id: bottomBar
         x: 96; y: 1080 - 32 - 56; width: 1728; height: 56
         opacity: home.chromeOpacity
         Behavior on opacity { NumberAnimation { duration: 200 } }
         property int at: 0
-        function setIndex(i) { at = Math.max(0, Math.min(i, 1)); }
+        // The Headset pill is there only where headset.sh is installed (CX).
+        readonly property int settingsAt: headset.available ? 2 : 1
+        function setIndex(i) { at = Math.max(0, Math.min(i, settingsAt)); }
         KeyNavigation.up: home.lastRow()
         Keys.onLeftPressed: setIndex(at - 1)
         Keys.onRightPressed: setIndex(at + 1)
         Keys.onReturnPressed: if (!event.isAutoRepeat) run()
         Keys.onEnterPressed: if (!event.isAutoRepeat) run()
-        function run() { if (at === 0) home.freeMemory(); else home.openSettings(); }
+        function run() { if (at === 0) home.freeMemory(); else if (at < settingsAt) headset.toggle(); else home.openSettings(); }
         function pick(i) { if (!bottomBar.activeFocus) bottomBar.forceActiveFocus(); setIndex(i); }
 
         Row {
@@ -541,11 +545,22 @@ FocusScope {
                 onClicked: { bottomBar.pick(0); bottomBar.run(); }
             }
             Pill {
-                icon: "settings"; text: "Settings"
+                visible: headset.available
+                icon: "headset"; text: "Headset"
+                trailing: headset.busy ? "…" : headset.on ? "On" : headset.present ? "Off" : "None"
+                active: headset.on
+                opacity: headset.present || headset.on ? 1 : 0.6
                 current: bottomBar.activeFocus && bottomBar.at === 1
                 accent: home.accent; ink: home.ink; glass: home.glass; panel: home.panel
                 onHovered: bottomBar.pick(1)
                 onClicked: { bottomBar.pick(1); bottomBar.run(); }
+            }
+            Pill {
+                icon: "settings"; text: "Settings"
+                current: bottomBar.activeFocus && bottomBar.at === bottomBar.settingsAt
+                accent: home.accent; ink: home.ink; glass: home.glass; panel: home.panel
+                onHovered: bottomBar.pick(bottomBar.settingsAt)
+                onClicked: { bottomBar.pick(bottomBar.settingsAt); bottomBar.run(); }
             }
         }
     }
@@ -557,6 +572,7 @@ FocusScope {
     }
     Sheet { id: sheet; accent: home.accent; ink: home.ink; panel: home.panel; glass: home.glass }
     Toast { id: toast; ink: home.ink; panel: home.panel; glass: home.glass }
+    Connections { target: home.headset; onMessage: toast.show(text) }
 
     // Back closes the innermost thing; at the top level the frame hides Home.
     function back() {

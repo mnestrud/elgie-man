@@ -1,5 +1,5 @@
 // A pill button: an icon, a label and an optional trailing figure. Filled with the
-// accent color while it has the focus.
+// accent color while it has the focus; tinted with it while "active" (a switch that is on).
 import QtQuick 2.7
 
 Rectangle {
@@ -8,6 +8,7 @@ Rectangle {
     property string text: ""
     property string trailing: ""
     property bool current: false
+    property bool active: false
     property color accent: "#7dd3fc"
     property color ink: "white"
     property color glass: "white"
@@ -19,9 +20,9 @@ Rectangle {
     height: 56
     radius: height / 2
     width: row.width + (icon !== "" ? 44 : 56)
-    color: current ? accent : Qt.rgba(glass.r, glass.g, glass.b, 0.14)
+    color: current ? accent : active ? Qt.rgba(accent.r, accent.g, accent.b, 0.3) : Qt.rgba(glass.r, glass.g, glass.b, 0.14)
     border.width: current ? 0 : 1
-    border.color: Qt.rgba(glass.r, glass.g, glass.b, 0.2)
+    border.color: active ? Qt.rgba(accent.r, accent.g, accent.b, 0.8) : Qt.rgba(glass.r, glass.g, glass.b, 0.2)
     Behavior on color { ColorAnimation { duration: 120 } }
 
     Row {

@@ -65,6 +65,10 @@ if [ "$V" != 5.6.2 ] && [ ! -f $D/force ]; then
 fi
 
 log "start uptime=$(cut -d' ' -f1 /proc/uptime) home=$(homepid)"
+# A USB headset route left on at the last shutdown: the sound output goes back to what it was.
+# Only at a real boot: deploy.sh runs this hook to apply an update while the TV is up.
+UP=$(cut -d. -f1 /proc/uptime)
+[ -x $D/headset.sh ] && [ "${UP:-0}" -lt 300 ] && (sleep 20; $D/headset.sh reset >/dev/null 2>&1) &
 grep -q " $Q " /proc/mounts || mount --bind $D/qml $Q || { log "mount failed"; exit 0; }
 if [ -f $D/no-snapshot ] || [ ! -d $STORED ]; then
   [ -f /tmp/criu_enable ] && mv /tmp/criu_enable /tmp/elgie-criu_enable.bak

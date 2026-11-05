@@ -6,6 +6,7 @@ Item {
     id: luna
     property string appId: "com.webos.app.home"
     property url iconDir                 // set by the harness: where the placeholder icons are
+    property bool headsetOn: false       // the mock headset route
 
     property var apps: [
         {id: "app.streamly", title: "Streamly", bgColor: "#e50914"},
@@ -57,6 +58,13 @@ Item {
             if (from >= 0) { var it = apps.splice(from, 1)[0]; apps.splice(params.position, 0, it); }
         }
         else if (method === "getAppInfo") r = {appInfo: {}};
+        else if (method === "exec") {                  // headset.sh on|off|status|reset
+            if (/ on$/.test(params.command)) headsetOn = true;
+            else if (/ (off|reset)$/.test(params.command)) headsetOn = false;
+            r = {stdoutString: JSON.stringify({present: true, on: headsetOn, soundOutput: headsetOn ? "headphone" : "external_arc",
+                                               message: / (on|off)$/.test(params.command) ? (headsetOn ? "Headset on" : "Headset off; sound back to HDMI ARC") : undefined})};
+        }
+        else if (method === "power/getPowerState") r = {state: "Active"};
         else if (method === "getCurrentMemState") r = {usable: 1150, currentLevel: "normal", prevLevel: "normal"};
         if (cb) Qt.callLater(function () { cb(true, r); });
         return {cancel: function () {}, destroy: function () {}};

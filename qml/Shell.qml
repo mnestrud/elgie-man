@@ -28,6 +28,7 @@ FocusScope {
     property alias foreground: foreground
     property alias memory: memory
     property alias weather: weather
+    property alias headset: headset
     Luna { id: luna }
     Apps { id: apps; luna: luna; demo: tv.config.demo === true; onHiddenEdited: if (tv.store) tv.store.hidden = list }
     Inputs { id: inputs; luna: luna }
@@ -39,6 +40,7 @@ FocusScope {
         onPeakMbChanged: if (store && peakMb > storedPeakMb) store.set("memoryPeakMb", peakMb)
     }
     Weather { id: weather; config: tv.config.weather || ({}); shown: tv.shown }
+    Headset { id: headset; luna: luna }
 
     function launch(id, params) { luna.launch(id, params); }
     function hide() { requestHide(); }
@@ -59,7 +61,7 @@ FocusScope {
     function start() {
         tickers.active = false; tickers.active = true;
         if (store && store.hidden) apps.hidden = store.hidden;
-        apps.start(); inputs.start(); running.start(); foreground.start();
+        apps.start(); inputs.start(); running.start(); foreground.start(); headset.start();
         started = true;
         ask("start");
         readThemes();
@@ -114,7 +116,7 @@ FocusScope {
     function activate(params) {
         shown = true;
         now = new Date();
-        running.refresh(); memory.read(); weather.refreshIfStale();
+        running.refresh(); memory.read(); weather.refreshIfStale(); headset.refresh();
         ask("activate", params || {});
     }
     function deactivate() { shown = false; picker.visible = false; ask("deactivate"); }
