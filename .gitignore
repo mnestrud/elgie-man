@@ -2,3 +2,4 @@ config.json
 backgrounds/
 private/
 lab/runs/
+emu.conf

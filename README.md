@@ -44,6 +44,7 @@ LG's Home was not watched for comparison.
 - **Themes:** the glass look over your own picture, and two color schemes of it (`nord`, `gruvbox`), picked under Settings → Look → Theme. Writing your own is covered in [`qml/dashboards/README.md`](qml/dashboards/README.md).
 - **The launcher makes no sounds of its own.** It does stop app sound in the cases above (Pause on Home, the CX background switch, Free up memory).
 - **Headset** (CX): a button at the bottom that sends the TV's sound to a USB headset plugged into the TV, which webOS 5 cannot do itself. On, it switches Sound Out to Wired Headphones, turns SIMPLINK off (a receiver on HDMI ARC takes the sound back otherwise) and pipes the TV's mix into the headset; the button is tinted while it is on. It goes off from the button, when the headset is switched off (the dongle reports the dropped link on its USB serial port; the sound is back on the receiver about a second later), when the dongle is unplugged, on a resume from standby and at a reboot, and both settings go back. The button follows the TV's Sound Out setting, so it updates by itself. The TV's volume does not apply; the headset's own dial does. Needs the Homebrew Channel (its `exec` service runs the script as root). Switched-off detection is known to work with the Sony INZONE H9 dongle; a dongle without a serial port leaves the other ways.
+- **RetroArch from a network share** (CX, optional): `scripts/emu-deploy.sh` sets the TV up to run [RetroArch](https://github.com/webosbrew/RetroArch) with its games, cores, artwork and saves on an NFS share, because the TV has under 400 MB free. See [RetroArch from a share](#retroarch-from-a-share).
 
 ## Requirements
 
@@ -110,6 +111,25 @@ Nothing on the TV's read-only system image is written. The rest:
 - **Block and release:** to make the TV read that manifest, the hook blocks Home in the application manager and releases it at once. The TV writes the block to its blocked-apps list and removes it again. A power cut between the two leaves Home blocked until the hook runs at the next boot and releases it.
 - **Settings:** in `/var/lib/elgie-man/settings.conf`.
 
+## RetroArch from a share
+
+Optional, CX only. The TV keeps the RetroArch app and one settings file; everything else is read from an NFS server on your network.
+
+**Install:** copy `emu.conf.example` to `emu.conf`, set the server and its two exports, then run `scripts/emu-deploy.sh <ssh-host> <retroarch gles3 .ipk>`. `<ssh-host>` is a root ssh alias (the Homebrew Channel's ssh server). RetroArch then shows up as a tile like any app.
+
+**The share** holds `roms/`, `cores/`, `info/`, `assets/`, `playlists/`, `thumbnails/`, `shaders/`, `autoconfig/`, `database/` and `cheats/` on a read-only export, and `saves/`, `states/`, `config/`, `system/`, `history/`, `runtime/` and `logs/` on a read-write one. `tv/retroarch.cfg` points RetroArch at them. Two TVs on one share see the same saves and history.
+
+**What the boot hook (`tv/emu-hook.sh`, installed as `40-emu`) changes on the TV:**
+
+- **Mounts:** the read-only export at `/media/developer/emu` and the read-write one at `/media/developer/emu/rw`, NFSv3 over TCP, soft. A loop mounts them when the network is up and again whenever they are gone.
+- **Jail config:** native apps run chrooted with `/media/developer` bound without its sub-mounts, so they would not see the share. The hook binds an edited copy of `/etc/jail_native_devmode.conf` over LG's file; the copy has two more `mount` lines, for the two mount points. LG's file is not written. This applies to every natively-run developer app.
+- **Game picture mode:** with `GAME_APP` set, the picture mode is switched to Game while that app is in front and put back when it leaves. The replaced mode is kept in `/var/lib/emu/picture-mode`.
+- **`/var/lib/padkeys/passthrough`** gets RetroArch's id. A pad-as-remote service that reads this file can stay quiet while RetroArch is in front; RetroArch reads the pads itself.
+
+**Pads:** `tv/autoconfig/` holds a RetroArch profile for the 8BitDo Ultimate 2 on its 2.4 GHz receiver (the kernel's xpad driver, vendor `2dc8`, product `310b`); copy it into the share's `autoconfig/sdl2/`. Start+Select opens RetroArch's menu.
+
+**Remove:** delete `/var/lib/webosbrew/init.d/40-emu` and `/var/lib/emu`, reboot, and uninstall RetroArch.
+
 ## Safety nets
 
 - **Start check.** 45 s after the TV next starts Home, the hook checks that the launcher recorded a start. If not, it removes the mounts, turns itself off and shows a toast, and stays off until the next `deploy.sh`. It checks only that the launcher's code ran, not that the screen is right. Tested on both TVs.
@@ -145,6 +165,8 @@ scripts/uninstall.sh <tv-ip>
 **Pointer:** tried by hand with the remote on the CX and the C5, and reported working on both. Hover, click, wheel and the menus were not checked one by one.
 
 **Headset (2026-11-04, Living Room CX, Sony INZONE H9 dongle):** the whole path was run by hand from a verified idle TV: button on with the headset connected (sound in the headset, nothing from the receiver), headset switched off (one toast, the receiver playing again one second after the dongle reported the drop, SIMPLINK back on). The two mix taps (`hw:0,12` and `hw:1,2`) were recorded together and found sample-identical. Not yet tried: the reset at a real boot and at a resume from standby, the teardown when the dongle is unplugged, the button on the C5, and the headset icon in the GFN app's dev build.
+
+**RetroArch from a share (2026-11-13, CX, RetroArch 1.22.2 gles3):** the hook mounted both exports, and again after a reboot; RetroArch started in its jail with the share visible, and games ran from playlists on Atari 2600, NES, SNES, Genesis, Game Gear, Game Boy, N64, PlayStation, FBNeo, MAME 2003-Plus, ScummVM and DOSBox-Pure. The picture mode went to Game and back. With a virtual pad (uinput, the receiver's ids) a pad plugged in while RetroArch ran was picked up, A, B and the left stick worked with the profile, and the pad service sent no remote keys. Not tried: a real controller (the D-pad did not register reliably from the virtual pad), sound by ear, a save made on one TV and loaded on another, the mounts after a standby of hours, the server being down, the removal steps.
 
 **Not tested:**
 

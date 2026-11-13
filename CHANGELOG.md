@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- RetroArch from a network share (CX): `scripts/emu-deploy.sh` installs the boot hook `tv/emu-hook.sh` (NFS mounts under `/media/developer/emu`, the two mount points added to the native-app jail config by a bind mount, Game picture mode while RetroArch is in front), the RetroArch IPK and `tv/retroarch.cfg`.
 - Headset button (CX) at the bottom of the glass theme: routes the TV's sound to a USB headset (`tv/headset.sh` over the Homebrew Channel's `exec`), switching Sound Out to Wired Headphones and SIMPLINK off while it is on; the button, a switched-off headset (link events on the dongle's serial port), a dongle unplug, a resume from standby or a reboot put them back. `qml/models/Headset.qml` in the frame follows the Sound Out setting; the pill is hidden where the script or the Homebrew Channel is missing.
 - Launcher for LG CX (webOS 5.6.2): app, open-app, input and TV rows; edit mode (move and hide apps, hide inputs); Free up memory; Pause when Home opens (twice for apps that need it); launcher settings panel kept per TV.
 - Boot hook for the CX with a snapshot of the launcher, a 45 s failsafe and a health check of inputs and sound output.

@@ -1,0 +1,6 @@
+# Settings for tv/emu-hook.sh (copied to /var/lib/emu/emu.conf by scripts/emu-deploy.sh).
+SERVER=192.0.2.10
+EXPORT=/srv/emu
+EXPORT_RW=/srv/emu/rw
+# App that gets the Game picture mode while it is in front (optional).
+GAME_APP=com.retroarch.webos
