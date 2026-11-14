@@ -4,3 +4,15 @@ EXPORT=/srv/emu
 EXPORT_RW=/srv/emu/rw
 # App that gets the Game picture mode while it is in front (optional).
 GAME_APP=com.retroarch.webos
+# Its executable and a SCHED_FIFO priority for its main thread while it is in front (optional). At normal
+# priority the TV leaves a ready thread waiting for a CPU for 5-20 ms now and then, which costs a frame.
+GAME_EXE=retroarch
+GAME_RT=20
+# A SCHED_FIFO priority for the TV's compositor while the app is in front (optional): it has the same
+# problem, and a late compositor frame is a dropped frame for the app.
+GAME_COMPOSITOR_RT=15
+# A key code pressed on the remote's input device every GAME_ACTIVITY_SECS seconds while the app is in
+# front (optional). The TV's 130 s idle timer does not see a pad the app reads itself; when it expires
+# the compositor freezes twice for one second. 185 is F15, which nothing acts on.
+GAME_ACTIVITY_KEY=185
+GAME_ACTIVITY_SECS=100
