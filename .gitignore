@@ -3,3 +3,4 @@ backgrounds/
 private/
 lab/runs/
 emu.conf
+emu.*.cfg

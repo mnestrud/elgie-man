@@ -4,7 +4,8 @@
 #   - installs tv/emu-hook.sh as the boot hook 40-emu and runs it (mounts, jail config, Game mode);
 #   - writes /var/lib/emu/emu.conf from emu.conf in the repo root (gitignored; see emu.conf.example);
 #   - installs the RetroArch IPK when one is given (webosbrew/RetroArch, the gles3 build);
-#   - puts tv/retroarch.cfg where RetroArch reads it (its HOME is the app folder);
+#   - puts tv/retroarch.cfg where RetroArch reads it (its HOME is the app folder), with the keys of
+#     emu.<ssh-host>.cfg, if that file exists, replacing its own;
 #   - lists RetroArch in /var/lib/padkeys/passthrough, for a pad-as-remote service that honors it.
 # <ssh-host> is a root ssh alias (Homebrew Channel's dropbear). Nothing here shows on the screen.
 set -euo pipefail
@@ -30,5 +31,16 @@ if [ -n "$IPK" ]; then
         kill \$p 2>/dev/null; grep -o -E '\"state\": *\"[^\"]*\"|errorText[^,]*' /tmp/emu-install.log | tail -1; rm -f /media/developer/temp/retroarch.ipk"
 fi
 tv "[ -d $APPDIR ]" || { echo "RetroArch is not installed: give the IPK as the second argument"; exit 1; }
-tv "mkdir -p $APPDIR/.config/retroarch && cat > $APPDIR/.config/retroarch/retroarch.cfg && chmod -R a+rwX $APPDIR/.config" < tv/retroarch.cfg
+# Per-TV settings: lines of emu.<ssh-host>.cfg (gitignored) replace the same keys of tv/retroarch.cfg,
+# e.g. menu_driver = "xmb".
+cfg=$(mktemp); cp tv/retroarch.cfg "$cfg"
+if [ -r "emu.$H.cfg" ]; then
+    while IFS= read -r line; do
+        key=${line%%=*}; key=${key%% *}
+        [ -n "$key" ] && [ "${key#\#}" = "$key" ] || continue
+        grep -v "^$key *=" "$cfg" > "$cfg.new"; echo "$line" >> "$cfg.new"; mv "$cfg.new" "$cfg"
+    done < "emu.$H.cfg"
+fi
+tv "mkdir -p $APPDIR/.config/retroarch && cat > $APPDIR/.config/retroarch/retroarch.cfg && chmod -R a+rwX $APPDIR/.config" < "$cfg"
+rm -f "$cfg"
 echo "done: $H"
