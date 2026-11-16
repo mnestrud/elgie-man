@@ -4,9 +4,10 @@
 #
 # Settings come from /var/lib/emu/emu.conf:
 #   SERVER=<NFS server address>   EXPORT=<read-only export>   EXPORT_RW=<read-write export>
-#   GAME_APP=<app id>             (optional, see below)
-#   GAME_EXE=<executable name>  GAME_RT=<priority>   GAME_COMPOSITOR_RT=<priority>   (optional)
+#   GAME_APP=<app id ...>         (optional, see below; several separated by spaces)
+#   GAME_EXE=<executable name ...>  GAME_RT=<priority>   GAME_COMPOSITOR_RT=<priority>   (optional)
 #   GAME_ACTIVITY_KEY=<key code>  GAME_ACTIVITY_SECS=<seconds>                       (optional)
+#   GAME_RT_THREADS=<thread name ...>   threads of GAME_EXE that also get SCHED_FIFO GAME_RT (optional)
 #
 # What it does:
 #  - mounts EXPORT at /media/developer/emu and EXPORT_RW at /media/developer/emu/rw (NFSv3; the
@@ -83,12 +84,17 @@ done
 EOS
 chmod +x /tmp/emu-activity.sh
 
+# Apps in GAME_APP read the pads themselves: the pad-as-remote service (padkeys) is told to stay
+# quiet while one is in front.
+mkdir -p /var/lib/padkeys
+for a in $GAME_APP; do grep -qx "$a" /var/lib/padkeys/passthrough 2>/dev/null || echo "$a" >> /var/lib/padkeys/passthrough; done
+
 # Game picture mode while GAME_APP is in front.
 gpid=/tmp/emu-game.pid
 if [ -n "$GAME_APP" ] && ! { [ -f "$gpid" ] && kill -0 "$(cat "$gpid")" 2>/dev/null; }; then
     (
         sh -c '
-            APP=$1; LOG=$2; EXE=$3; RT=$4; CRT=$5; AKEY=$6; ASECS=${7:-100}; NOTE=/var/lib/emu/picture-mode
+            APP=$1; LOG=$2; EXE=$3; RT=$4; CRT=$5; AKEY=$6; ASECS=${7:-100}; RTT=$8; NOTE=/var/lib/emu/picture-mode
             # active on | off: the periodic activity key (see the script written above).
             active() {
                 p=$(cat /tmp/emu-active.pid 2>/dev/null); [ -n "$p" ] && kill "$p" 2>/dev/null; rm -f /tmp/emu-active.pid
@@ -109,30 +115,37 @@ if [ -n "$GAME_APP" ] && ! { [ -f "$gpid" ] && kill -0 "$(cat "$gpid")" 2>/dev/n
             mode() { luna-send -n 1 $S/setSystemSettings "{\"category\":\"picture\",\"settings\":{\"pictureMode\":\"$1\"}}" < /dev/null > /dev/null; }
             while true; do
                 luna-send -i luna://com.webos.applicationManager/getForegroundAppInfo "{\"subscribe\":true}" < /dev/null | while read -r line; do
-                    case "$line" in
-                    *"\"appId\":\"$APP\""*)
+                    case "$line" in *"\"appId\":"*) ;; *) continue;; esac
+                    id=$(echo "$line" | sed -n "s/.*\"appId\":\"\([^\"]*\)\".*/\1/p")
+                    # GAME_APP and GAME_EXE may each list several, separated by spaces.
+                    case " $APP " in
+                    *" $id "*)
                         # The main thread at real-time priority (threads it starts later stay normal).
                         [ -e /tmp/emu-active.pid ] && kill -0 "$(cat /tmp/emu-active.pid)" 2>/dev/null || { active on; [ -e /tmp/emu-active.pid ] && echo "$(date "+%F %T") activity key $AKEY every $ASECS s" >> "$LOG"; }
                         if [ -n "$CRT" ] && [ ! -e /tmp/emu-comp-rt ]; then comp fifo "$CRT"; touch /tmp/emu-comp-rt; echo "$(date "+%F %T") compositor: SCHED_FIFO $CRT" >> "$LOG"; fi
                         if [ -n "$EXE" ] && [ -n "$RT" ]; then
-                            for p in $(pidof "$EXE"); do
-                                chrt -p "$p" 2>/dev/null | grep -q SCHED_FIFO || { chrt -R -f -p "$RT" "$p" && echo "$(date "+%F %T") $EXE pid $p: SCHED_FIFO $RT" >> "$LOG"; }
-                            done
+                            for e in $EXE; do for p in $(pidof "$e"); do
+                                chrt -p "$p" 2>/dev/null | grep -q SCHED_FIFO || { chrt -R -f -p "$RT" "$p" && echo "$(date "+%F %T") $e pid $p: SCHED_FIFO $RT" >> "$LOG"; }
+                            done; done
+                            # Named threads too (GAME_RT_THREADS), once they exist (they start after the app comes up).
+                            [ -n "$RTT" ] && ( for try in 1 2 3 4 5 6; do sleep 2; for e in $EXE; do for p in $(pidof "$e"); do for t in /proc/$p/task/*; do
+                                n=$(cat $t/comm 2>/dev/null); case " $RTT " in *" $n "*) chrt -p "${t##*/}" 2>/dev/null | grep -q SCHED_FIFO || { chrt -f -p "$RT" "${t##*/}" && echo "$(date "+%F %T") $e thread $n: SCHED_FIFO $RT" >> "$LOG"; };; esac
+                            done; done; done; done ) &
                         fi
                         if [ ! -s "$NOTE" ]; then
                             m=$(cur)
-                            case "$m" in ""|game|hdrGame|dolbyHdrGame) ;; *) echo "$m" > "$NOTE"; mode game; echo "$(date "+%F %T") $APP in front: picture mode $m -> game" >> "$LOG";; esac
+                            case "$m" in ""|game|hdrGame|dolbyHdrGame) ;; *) echo "$m" > "$NOTE"; mode game; echo "$(date "+%F %T") $id in front: picture mode $m -> game" >> "$LOG";; esac
                         fi;;
-                    *"\"appId\":"*)
+                    *)
                         active off
                         if [ -e /tmp/emu-comp-rt ]; then comp other 0; rm -f /tmp/emu-comp-rt; echo "$(date "+%F %T") compositor: back to normal priority" >> "$LOG"; fi
                         if [ -s "$NOTE" ]; then
-                            m=$(cat "$NOTE"); mode "$m"; rm -f "$NOTE"; echo "$(date "+%F %T") $APP left: picture mode back to $m" >> "$LOG"
+                            m=$(cat "$NOTE"); mode "$m"; rm -f "$NOTE"; echo "$(date "+%F %T") game app left: picture mode back to $m" >> "$LOG"
                         fi;;
                     esac
                 done
                 sleep 5
-            done' emu-game "$GAME_APP" "$LOG" "$GAME_EXE" "$GAME_RT" "$GAME_COMPOSITOR_RT" "$GAME_ACTIVITY_KEY" "$GAME_ACTIVITY_SECS" &
+            done' emu-game "$GAME_APP" "$LOG" "$GAME_EXE" "$GAME_RT" "$GAME_COMPOSITOR_RT" "$GAME_ACTIVITY_KEY" "$GAME_ACTIVITY_SECS" "$GAME_RT_THREADS" &
         echo $! > "$gpid"
     ) >/dev/null 2>&1
 fi

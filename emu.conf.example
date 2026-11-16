@@ -16,3 +16,5 @@ GAME_COMPOSITOR_RT=15
 # the compositor freezes twice for one second. 185 is F15, which nothing acts on.
 GAME_ACTIVITY_KEY=185
 GAME_ACTIVITY_SECS=100
+# Named threads of those executables that also get SCHED_FIFO GAME_RT (optional), e.g. a render thread.
+GAME_RT_THREADS="sm64-render"
